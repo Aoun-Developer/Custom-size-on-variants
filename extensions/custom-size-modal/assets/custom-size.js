@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const shop = container.dataset.shop;
     let currentSet = null;
+    let currentDesign = null;
     let lastChecked = '';
 
     const getProductForm = () => document.querySelector('form[action^="/cart/add"]');
@@ -22,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = getProductForm();
         if (!form) return;
 
-        // Strategy: Combine inputs from form, linked by ID, and global variant pickers
         let inputs = [...form.querySelectorAll('input:checked, option:checked')];
         const formId = form.getAttribute('id');
         if (formId) inputs.push(...document.querySelectorAll(`input[form="${formId}"]:checked, option[form="${formId}"]:checked`));
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedOptions.length === 0) return;
 
         try {
-            // Try proxy first, then direct API
             let apiUrl = `/apps/custom-size/api/custom-size?shop=${shop}&variant=${encodeURIComponent(variantKey)}`;
             let res = await fetch(apiUrl);
 
@@ -50,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) return;
             const data = await res.json();
 
-            // Handle both legacy { set: ... } and new { sets: [...] } formats
             let sets = [];
             if (data.sets && Array.isArray(data.sets)) {
                 sets = data.sets;
@@ -59,20 +57,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (data.design) {
+                currentDesign = data.design;
                 applyDesign(data.design);
             }
 
             if (sets.length > 0) {
                 currentSet = sets;
                 const style = sets[0].displayStyle;
-                style === 'INLINE' ? renderInline(sets) : renderModal(sets);
+                style === 'INLINE' ? renderInline(sets) : renderModal(sets, currentDesign);
             } else {
                 currentSet = null;
                 closeModal();
                 removeInline();
                 toggleButtons(true);
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error('[Custom Size]', e); }
     };
 
     const applyDesign = (design) => {
@@ -83,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.head.appendChild(style);
         }
 
-        // Build CSS rules conditionally
         let modalStyles = [];
         let inputStyles = [];
         let placeholderStyles = [];
@@ -144,19 +142,15 @@ document.addEventListener('DOMContentLoaded', () => {
         div.style.marginTop = '15px';
         div.style.marginBottom = '15px';
 
-        // Combine HTML for all sets
         div.innerHTML = sets.map(set => `<div class="custom-size-set-block">${buildHtml(set)}</div>`).join('<hr class="custom-size-divider" style="margin: 15px 0; border: 0; border-top: 1px solid #eee;" />');
 
         const form = getProductForm();
         if (form) {
-            // PLACEMENT LOGIC: Try to insert BEFORE the buttons, or AFTER the last variant input
             const buttons = form.querySelector('.product-form__buttons, .shopify-payment-button, [name="add"]');
             if (buttons) {
-                // If buttons are found, insert BEFORE them (best for being below variants)
                 const container = buttons.closest('.product-form__buttons') || buttons;
                 container.before(div);
             } else {
-                // Fallback: try to find the last variant selector
                 const variants = form.querySelectorAll('variant-radios, variant-selects, fieldset.product-form__input, [class*="variant"]');
                 if (variants.length > 0) {
                     variants[variants.length - 1].after(div);
@@ -166,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             form.addEventListener('submit', () => {
-                // Check primary set style (assuming consistent across sets for now)
                 if (currentSet && currentSet[0].displayStyle === 'INLINE') appendInputs(div);
             });
         }
@@ -179,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeInline = () => document.getElementById('custom-size-inline-container')?.remove();
 
-    const renderModal = (sets) => {
+    const renderModal = (sets, design) => {
         if (document.getElementById('custom-size-modal-overlay')) return;
         toggleButtons(false);
 
@@ -188,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.className = 'custom-size-modal-overlay';
 
         const firstSet = sets[0];
-
         overlay.innerHTML = `
             <div class="custom-size-modal">
                 <div class="custom-size-header">

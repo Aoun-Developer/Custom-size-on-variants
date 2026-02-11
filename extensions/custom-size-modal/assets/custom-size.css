@@ -164,6 +164,68 @@
   gap: 15px;
 }
 
+/* Horizontal Layout Mode */
+.custom-size-modal-horizontal {
+  max-width: 900px !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.custom-size-modal-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  max-height: 90vh;
+}
+
+.custom-size-image-section {
+  flex: 0 0 40%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.custom-size-image-section img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.custom-size-content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+  background: white;
+}
+
+.custom-size-modal-horizontal .custom-size-header {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.custom-size-modal-horizontal .custom-size-header img {
+  display: none;
+  /* Image is in the left section */
+}
+
+.custom-size-modal-horizontal .custom-size-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.custom-size-modal-horizontal .custom-size-footer {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .custom-size-modal {
@@ -173,5 +235,32 @@
 
   .custom-size-inline {
     padding: 15px;
+  }
+
+  /* Switch horizontal layout to vertical on mobile */
+  .custom-size-modal-horizontal {
+    max-width: 95% !important;
+    padding: 15px !important;
+  }
+
+  .custom-size-modal-container {
+    flex-direction: column;
+  }
+
+  .custom-size-image-section {
+    flex: 0 0 auto;
+    max-height: 200px;
+    padding: 10px;
+  }
+
+  .custom-size-content-section {
+    padding: 15px 0 0 0;
+  }
+
+  .custom-size-modal-horizontal .custom-size-header img {
+    display: block;
+    /* Show image in header on mobile */
+    max-width: 100%;
+    margin-bottom: 10px;
   }
 }

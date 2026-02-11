@@ -43,6 +43,7 @@ export default function DesignSettings() {
     const shopify = useAppBridge();
 
     // State initialization from loader data
+    const [imageLayout, setImageLayout] = useState(design?.imageLayout || "vertical");
     const [modalBgColor, setModalBgColor] = useState(design?.modalBgColor || "#ffffff");
     const [borderWidth, setBorderWidth] = useState(design?.borderWidth?.toString() || "1");
     const [borderStyle, setBorderStyle] = useState(design?.borderStyle || "solid");
@@ -60,6 +61,7 @@ export default function DesignSettings() {
         const formData = new FormData();
 
         // Only append non-empty values
+        if (imageLayout) formData.append("imageLayout", imageLayout);
         if (modalBgColor) formData.append("modalBgColor", modalBgColor);
         if (borderWidth) formData.append("borderWidth", borderWidth);
         if (borderStyle) formData.append("borderStyle", borderStyle);
@@ -90,19 +92,37 @@ export default function DesignSettings() {
                     <Layout.Section>
                         <Card>
                             <BlockStack gap="400">
-                                <Text as="h2" variant="headingMd">General Styles</Text>
-                                <FormLayout>
-                                    <FormLayout.Group>
-                                        <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
-                                        <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
-                                    </FormLayout.Group>
-                                    <FormLayout.Group>
-                                        <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
-                                        <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
-                                    </FormLayout.Group>
-                                </FormLayout>
+                                <Text as="h2" variant="headingMd">Layout Configuration</Text>
+                                <Select
+                                    label="Image & Fields Layout"
+                                    options={[
+                                        { label: 'Vertical Layout (Image on Top, Fields Below)', value: 'vertical' },
+                                        { label: 'Horizontal Layout (Image on Left, Fields on Right)', value: 'horizontal' }
+                                    ]}
+                                    value={imageLayout}
+                                    onChange={setImageLayout}
+                                    helpText="Choose how the header image and input fields are arranged in the modal"
+                                />
                             </BlockStack>
                         </Card>
+
+                        <Box paddingBlockStart="400">
+                            <Card>
+                                <BlockStack gap="400">
+                                    <Text as="h2" variant="headingMd">General Styles</Text>
+                                    <FormLayout>
+                                        <FormLayout.Group>
+                                            <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
+                                            <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
+                                        </FormLayout.Group>
+                                        <FormLayout.Group>
+                                            <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
+                                            <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
+                                        </FormLayout.Group>
+                                    </FormLayout>
+                                </BlockStack>
+                            </Card>
+                        </Box>
 
                         <Box paddingBlockStart="400">
                             <Card>
