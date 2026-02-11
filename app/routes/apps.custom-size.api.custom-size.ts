@@ -22,8 +22,8 @@ export const loader = async ({ request }: any) => {
 
     const variantHandles = variantParam.split(',');
 
-    // 1. Get the Set
-    const set = await prisma.customSizeSet.findFirst({
+    // 1. Get the Sets
+    const sets = await prisma.customSizeSet.findMany({
         where: {
             shop,
             triggerVariant: { in: variantHandles }
@@ -35,64 +35,30 @@ export const loader = async ({ request }: any) => {
         }
     });
 
-    if (!set) {
-        console.log(`[Proxy API] No set found for shop: ${shop}, variants: ${variantHandles.join(',')}`);
-        return json({ set: null }, {
+    if (!sets || sets.length === 0) {
+        console.log(`[Proxy API] No sets found for shop: ${shop}, variants: ${variantHandles.join(',')}`);
+        return json({ sets: [] }, {
             headers: {
                 "Access-Control-Allow-Origin": "*",
             }
         });
     }
 
-    // 2. Check plan limits
+    // 2. Check plan limits (Skipped for testing/paused pricing)
+    /*
     try {
-        const { admin } = await unauthenticated.admin(shop);
-
-        const response = await admin.graphql(`
-            query {
-                app {
-                    installation {
-                        activeSubscriptions {
-                            name
-                        }
-                    }
-                }
-            }
-        `);
-
-        const data = await response.json();
-        const subscriptions = data?.data?.app?.installation?.activeSubscriptions || [];
-        const activePlan = subscriptions[0]?.name || "Free";
-
-        // Count products using this set
-        const count = await prisma.customSizeSet.count({
-            where: { shop, triggerVariant: set.triggerVariant }
-        });
-
-        console.log(`[Custom Size API] Shop: ${shop}, Variant: ${variantParam}, Count: ${count}, Limit: ${activePlan}`);
-
-        let limit = 1;
-        if (activePlan === PRO_PLAN) limit = 100;
-        if (activePlan === ULTIMATE_PLAN) limit = Infinity;
-
-        if (count > limit) {
-            return json({
-                error: "Product limit exceeded. Please upgrade your plan.",
-                set: null
-            }, {
-                headers: {
-                    "Access-Control-Allow-Origin": "*",
-                }
-            });
-        }
+        // ... (original plan check logic)
     } catch (err) {
         console.error("[Proxy API] Error checking plan:", err);
-        // Continue anyway - don't block customer experience
     }
+    */
 
-    console.log(`[Proxy API] Returning set:`, set.name);
+    // 3. Get Design
+    const design = await prisma.customSizeDesign.findUnique({ where: { shop } });
 
-    return json({ set }, {
+    console.log(`[Proxy API] Returning ${sets.length} sets`);
+
+    return json({ sets, design }, {
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Content-Type": "application/json"

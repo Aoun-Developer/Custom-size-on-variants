@@ -55,6 +55,28 @@ model CustomSizeField {
   label     String
   type      String
   required  Boolean       @default(false)
+  placeholder String?
   order     Int           @default(0)
+}
+
+model CustomSizeDesign {
+  id               Int      @id @default(autoincrement())
+  shop             String   @unique
+  // Backgrounds
+  modalBgColor     String?
+  // Borders
+  borderWidth      Int?
+  borderStyle      String?
+  borderColor      String?
+  // Colors
+  textColor        String?
+  placeholderColor String?
+  titleColor       String?
+  noteColor        String?
+  noteBgColor      String?
+  // Custom CSS
+  customCss        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 

@@ -20,8 +20,8 @@ export const loader = async ({ request }: any) => {
 
     const variantHandles = variantParam.split(',');
 
-    // 1. Get the Set
-    const set = await prisma.customSizeSet.findFirst({
+    // 1. Get the Sets
+    const sets = await prisma.customSizeSet.findMany({
         where: {
             shop,
             triggerVariant: { in: variantHandles }
@@ -33,74 +33,19 @@ export const loader = async ({ request }: any) => {
         }
     });
 
-    if (!set) {
-        return json({ set: null }, { headers: { "Access-Control-Allow-Origin": "*" } });
+    if (!sets || sets.length === 0) {
+        return json({ sets: [] }, { headers: { "Access-Control-Allow-Origin": "*" } });
     }
 
-    // 2. Check Plan & Product Limits
-    let allowed = true;
-    let limit = 5; // Free Plan Limit
+    // 2. Check Plan & Product Limits (Skipped for testing)
+    /*
+    // ... (original plan check logic)
+    */
 
-    try {
-        const offlineSession = await prisma.session.findFirst({
-            where: { shop, isOnline: false }
-        });
+    // 3. Get Design
+    const design = await prisma.customSizeDesign.findUnique({ where: { shop } });
 
-        if (offlineSession) {
-            // Check Billing
-            // Use 'shopify.billing' directly as it is the instance from shopify.server.ts
-            const billingCheck = await (shopify as any).billing.check({
-                session: offlineSession,
-                plans: [PRO_PLAN, ULTIMATE_PLAN],
-                isTest: true,
-            });
-
-            if (billingCheck.hasActivePayment) {
-                const activeSub = billingCheck.appSubscriptions.find((sub: any) => sub.status === "ACTIVE");
-                if (activeSub?.name === PRO_PLAN) limit = 50;
-                if (activeSub?.name === ULTIMATE_PLAN) limit = Number.MAX_SAFE_INTEGER;
-            }
-
-            // Count Products using GraphQL
-            // unauthenticated.admin(shop) returns { admin } if an offline session exists
-            const { admin } = await unauthenticated.admin(shop);
-
-            if (admin) {
-                const response = await admin.graphql(
-                    `#graphql
-                    query CountProducts($query: String!) {
-                        productsCount(query: $query) {
-                            count
-                        }
-                    }`,
-                    { variables: { query: `variants.title:${set.triggerVariant}` } }
-                );
-
-                const data = await response.json();
-                const count = data.data?.productsCount?.count || 0;
-
-                // Log for debugging
-                console.log(`[Custom Size API] Shop: ${shop}, Variant: ${variantParam}, Count: ${count}, Limit: ${limit}`);
-
-                if (count > limit) {
-                    allowed = false;
-                }
-            }
-        }
-    } catch (error) {
-        console.error("Error checking limits:", error);
-        // Fail open: Allow access if check fails to prevent blocking legitimate usage due to API errors
-        allowed = true;
-    }
-
-    if (!allowed) {
-        return json({ error: "Plan limit reached. Upgrade to add more products." }, {
-            status: 402,
-            headers: { "Access-Control-Allow-Origin": "*" }
-        });
-    }
-
-    return json({ set }, {
+    return json({ sets, design }, {
         headers: {
             "Access-Control-Allow-Origin": "*",
         }

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { json, redirect } from "@remix-run/node";
 import { useLoaderData, useSubmit, useNavigation, Form } from "@remix-run/react";
 import {
@@ -98,6 +98,7 @@ export const action = async ({ request, params }: any) => {
                         label: f.label,
                         type: f.type,
                         required: f.required,
+                        placeholder: f.placeholder,
                         order: index
                     }))
                 }
@@ -106,7 +107,6 @@ export const action = async ({ request, params }: any) => {
         return redirect(`/app`);
     } else {
         // Update logic (simplified: delete all fields and recreate)
-        // For specific updates, need more complex logic or just update primitives
         const setId = parseInt(params.id);
         await prisma.$transaction([
             prisma.customSizeField.deleteMany({ where: { setId } }),
@@ -125,6 +125,7 @@ export const action = async ({ request, params }: any) => {
                             label: f.label,
                             type: f.type,
                             required: f.required,
+                            placeholder: f.placeholder,
                             order: index
                         }))
                     }
@@ -153,13 +154,46 @@ export default function SetEditor() {
     const [newFieldLabel, setNewFieldLabel] = useState("");
     const isSaving = nav.state === "submitting";
 
+    // Dirty state tracking
+    const [isDirty, setIsDirty] = useState(false);
+
+    // Effect to check for changes
+    useEffect(() => {
+        const initialState = {
+            name: set?.name || "",
+            triggerVariant: set?.triggerVariant || "Custom Size",
+            imageUrl: set?.imageUrl || "",
+            displayStyle: set?.displayStyle || "MODAL",
+            noteTitle: set?.noteTitle || "",
+            noteContent: set?.noteContent || "",
+            reqNearestSize: set?.reqNearestSize || false,
+            fields: set?.fields || []
+        };
+
+        const currentState = {
+            name,
+            triggerVariant,
+            imageUrl,
+            displayStyle,
+            noteTitle,
+            noteContent,
+            reqNearestSize,
+            fields
+        };
+
+        // Simple deep comparison (sufficient for this data structure)
+        const hasChanged = JSON.stringify(initialState) !== JSON.stringify(currentState);
+        setIsDirty(hasChanged);
+    }, [name, triggerVariant, imageUrl, displayStyle, noteTitle, noteContent, reqNearestSize, fields, set]);
+
+
     const handleAddField = () => {
         if (!newFieldLabel) return;
         if (!isPro && fields.length >= 3) {
             shopify.toast.show("Free plan limited to 3 fields");
             return;
         }
-        setFields([...fields, { label: newFieldLabel, type: "text", required: false }]);
+        setFields([...fields, { label: newFieldLabel, type: "text", required: false, placeholder: "" }]);
         setNewFieldLabel("");
     };
 
@@ -180,7 +214,7 @@ export default function SetEditor() {
         <Page>
             <TitleBar title={set ? "Edit Set" : "Create New Set"}>
                 <button onClick={() => history.back()}>Cancel</button>
-                <button variant="primary" onClick={handleSave} disabled={isSaving}>Save</button>
+                <button variant="primary" onClick={handleSave} disabled={isSaving || !isDirty}>Save</button>
             </TitleBar>
             <BlockStack gap="500">
                 {!isPro && (
@@ -324,10 +358,41 @@ export default function SetEditor() {
                                 <BlockStack gap="400">
                                     <Text as="h2" variant="headingMd">Input Fields</Text>
                                     {fields.map((field, index) => (
-                                        <InlineStack key={index} gap="300" align="space-between">
-                                            <Text as="span" variant="bodyMd">{index + 1}. {field.label} ({field.type})</Text>
-                                            <Button tone="critical" onClick={() => setFields(fields.filter((_, i) => i !== index))}>Delete</Button>
-                                        </InlineStack>
+                                        <div key={index} style={{ border: '1px solid #ddd', padding: '10px', borderRadius: '4px' }}>
+                                            <InlineStack gap="300" align="space-between">
+                                                <div style={{ display: 'flex', gap: '10px', width: '100%', alignItems: 'center' }}>
+                                                    <Text as="span" variant="bodyMd" fontWeight="bold">{index + 1}.</Text>
+                                                    <div style={{ flex: 1 }}>
+                                                        <TextField
+                                                            label="Label"
+                                                            labelHidden
+                                                            value={field.label}
+                                                            onChange={(val) => {
+                                                                const newFields = [...fields];
+                                                                newFields[index].label = val;
+                                                                setFields(newFields);
+                                                            }}
+                                                            autoComplete="off"
+                                                        />
+                                                    </div>
+                                                    <div style={{ flex: 1 }}>
+                                                        <TextField
+                                                            label="Placeholder"
+                                                            labelHidden
+                                                            value={field.placeholder || ""}
+                                                            placeholder="Placeholder (e.g. IN INCHES)"
+                                                            onChange={(val) => {
+                                                                const newFields = [...fields];
+                                                                newFields[index].placeholder = val;
+                                                                setFields(newFields);
+                                                            }}
+                                                            autoComplete="off"
+                                                        />
+                                                    </div>
+                                                    <Button tone="critical" onClick={() => setFields(fields.filter((_, i) => i !== index))}>Delete</Button>
+                                                </div>
+                                            </InlineStack>
+                                        </div>
                                     ))}
                                     <InlineStack gap="300" align="end">
                                         <div style={{ flexGrow: 1 }}>

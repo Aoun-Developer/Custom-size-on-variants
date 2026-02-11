@@ -50,9 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) return;
             const data = await res.json();
 
-            if (data.set) {
-                currentSet = data.set;
-                data.set.displayStyle === 'INLINE' ? renderInline(data.set) : renderModal(data.set);
+            // Handle both legacy { set: ... } and new { sets: [...] } formats
+            let sets = [];
+            if (data.sets && Array.isArray(data.sets)) {
+                sets = data.sets;
+            } else if (data.set) {
+                sets = [data.set];
+            }
+
+            if (data.design) {
+                applyDesign(data.design);
+            }
+
+            if (sets.length > 0) {
+                currentSet = sets;
+                const style = sets[0].displayStyle;
+                style === 'INLINE' ? renderInline(sets) : renderModal(sets);
             } else {
                 currentSet = null;
                 closeModal();
@@ -60,6 +73,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleButtons(true);
             }
         } catch (e) { console.error(e); }
+    };
+
+    const applyDesign = (design) => {
+        let style = document.getElementById('custom-size-design-styles');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'custom-size-design-styles';
+            document.head.appendChild(style);
+        }
+
+        style.innerHTML = `
+            .custom-size-modal { background-color: ${design.modalBgColor || '#fff'} !important; }
+            .custom-size-input { 
+                border-width: ${design.borderWidth}px !important;
+                border-style: ${design.borderStyle || 'solid'} !important;
+                border-color: ${design.borderColor || '#ddd'} !important;
+                color: ${design.textColor || '#333'} !important;
+            }
+            .custom-size-input::placeholder { color: ${design.placeholderColor || '#999'} !important; }
+            .custom-size-header h2, .custom-size-set-section h3 { color: ${design.titleColor || '#000'} !important; }
+            .custom-size-note { 
+                color: ${design.noteColor || '#666'} !important; 
+                background-color: ${design.noteBgColor || '#f9f9f9'} !important;
+            }
+            ${design.customCss || ''}
+        `;
     };
 
     const toggleButtons = (enable) => {
@@ -77,14 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const required = Array.from(scope.querySelectorAll('.custom-size-input[required]'));
         let valid = required.every(input => input.value);
 
-        if (currentSet?.reqNearestSize) {
-            const nearest = scope.querySelector('.custom-size-nearest-size');
-            if (nearest && !nearest.value) valid = false;
-        }
+        // reqNearestSize handled by required attribute on select
+
         toggleButtons(valid);
     };
 
-    const renderInline = (set) => {
+    const renderInline = (sets) => {
         removeInline();
         toggleButtons(false);
 
@@ -93,7 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'custom-size-inline';
         div.style.marginTop = '15px';
         div.style.marginBottom = '15px';
-        div.innerHTML = buildHtml(set);
+
+        // Combine HTML for all sets
+        div.innerHTML = sets.map(set => `<div class="custom-size-set-block">${buildHtml(set)}</div>`).join('<hr class="custom-size-divider" style="margin: 15px 0; border: 0; border-top: 1px solid #eee;" />');
 
         const form = getProductForm();
         if (form) {
@@ -114,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             form.addEventListener('submit', () => {
-                if (currentSet?.displayStyle === 'INLINE') appendInputs(div);
+                // Check primary set style (assuming consistent across sets for now)
+                if (currentSet && currentSet[0].displayStyle === 'INLINE') appendInputs(div);
             });
         }
 
@@ -126,31 +166,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const removeInline = () => document.getElementById('custom-size-inline-container')?.remove();
 
-    const renderModal = (set) => {
+    const renderModal = (sets) => {
         if (document.getElementById('custom-size-modal-overlay')) return;
         toggleButtons(false);
 
         const overlay = document.createElement('div');
         overlay.id = 'custom-size-modal-overlay';
         overlay.className = 'custom-size-modal-overlay';
+
+        const firstSet = sets[0];
+
         overlay.innerHTML = `
             <div class="custom-size-modal">
                 <div class="custom-size-header">
-                    ${set.imageUrl ? `<img src="${set.imageUrl}" alt="${set.name}" />` : ''}
-                    <h2>${set.name}</h2>
+                    ${firstSet.imageUrl ? `<img src="${firstSet.imageUrl}" alt="${firstSet.name}" />` : ''}
+                    <h2>Custom Size</h2>
                     <button class="custom-size-close">&times;</button>
                 </div>
-                ${buildNoteHtml(set)}
                 <div class="custom-size-body">
-                    <div class="custom-size-fields">
-                        ${buildNearestSizeHtml(set)}
-                        ${set.fields.map(f => `
-                            <div class="custom-size-field">
-                                <label>${f.label}${f.required ? '*' : ''}</label>
-                                <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
+                    ${sets.map(set => `
+                        <div class="custom-size-set-section">
+                            <h3 style="margin-bottom: 10px; font-size: 1.1em;">${set.name}</h3>
+                            ${buildNoteHtml(set)}
+                            <div class="custom-size-fields">
+                                ${buildNearestSizeHtml(set)}
+                                ${set.fields.map(f => `
+                                    <div class="custom-size-field">
+                                        <label>${f.label}${f.required ? '*' : ''}</label>
+                                        <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
+                                    </div>
+                                `).join('')}
                             </div>
-                        `).join('')}
-                    </div>
+                        </div>
+                    `).join('<hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;" />')}
                 </div>
                 <div class="custom-size-footer"><button class="custom-size-save-btn">Save Measurements</button></div>
             </div>`;
@@ -202,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${set.fields.map(f => `
                 <div class="custom-size-field">
                     <label>${f.label}${f.required ? '*' : ''}</label>
-                    <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
+                    <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}" />
                 </div>
             `).join('')}
         </div>`;

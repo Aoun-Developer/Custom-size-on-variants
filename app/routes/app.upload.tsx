@@ -52,7 +52,7 @@ export const action = async ({ request }: any) => {
         const fileData = await fileCreateResponse.json();
         console.log("File Create Response:", JSON.stringify(fileData, null, 2));
 
-        const fileObj = fileData.data?.fileCreate?.files?.[0];
+        let fileObj = fileData.data?.fileCreate?.files?.[0];
         const userErrors = fileData.data?.fileCreate?.userErrors;
 
         if (userErrors && userErrors.length > 0) {
@@ -64,8 +64,46 @@ export const action = async ({ request }: any) => {
             return json({ error: "Failed to create file object", details: fileData }, { status: 500 });
         }
 
+        // --- Polling for URL if not ready ---
+        let retries = 5;
+        while (!fileObj.url && !fileObj.image?.url && retries > 0) {
+            await new Promise(r => setTimeout(r, 1000));
+            const queryResponse = await admin.graphql(
+                `#graphql
+                query getFile($id: ID!) {
+                    node(id: $id) {
+                        ... on GenericFile {
+                            id
+                            url
+                            fileStatus
+                        }
+                        ... on MediaImage {
+                            id
+                            fileStatus
+                            image {
+                                url
+                            }
+                        }
+                    }
+                }`,
+                { variables: { id: fileObj.id } }
+            );
+            const queryData = await queryResponse.json();
+            if (queryData.data?.node) {
+                fileObj = queryData.data.node;
+            }
+            retries--;
+        }
+
         const publicUrl = fileObj.url || fileObj.image?.url;
         console.log("Extracted URL:", publicUrl);
+
+        if (!publicUrl) {
+            return json({
+                error: "File created but URL not ready. Please try again or check Files in admin.",
+                file: { id: fileObj.id, status: fileObj.fileStatus }
+            }, { status: 200 }); // Return success but with partial data? No, let's return error for now or handle in UI
+        }
 
         return json({
             file: {
