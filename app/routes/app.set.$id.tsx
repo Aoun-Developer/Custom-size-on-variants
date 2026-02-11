@@ -30,7 +30,7 @@ export const loader = async ({ request, params }: any) => {
         isTest: true,
     });
 
-    const isPro = billingCheck.hasActivePayment;
+    const isPro = true; // billingCheck.hasActivePayment;
 
     if (params.id === "new") {
         return json({ set: null, isPro });
@@ -67,7 +67,7 @@ export const action = async ({ request, params }: any) => {
         plans: [PRO_PLAN],
         isTest: true,
     });
-    const isPro = billingCheck.hasActivePayment;
+    const isPro = true; // billingCheck.hasActivePayment;
 
     // Free Tier Limit Check
     if (!isPro) {
