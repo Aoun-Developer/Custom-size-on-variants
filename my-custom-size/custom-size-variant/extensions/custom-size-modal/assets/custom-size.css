@@ -1,0 +1,177 @@
+/* Modal Overlay */
+.custom-size-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+/* Modal Container */
+.custom-size-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Header */
+.custom-size-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.custom-size-header img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.custom-size-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.custom-size-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Note Section */
+.custom-size-note {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.custom-size-note h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #856404;
+}
+
+.custom-size-note p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #856404;
+  line-height: 1.5;
+}
+
+/* Fields */
+.custom-size-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.custom-size-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.custom-size-field label {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.custom-size-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.custom-size-input.error {
+  border-color: red;
+}
+
+.custom-size-input::placeholder {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* Nearest Size Select */
+.custom-size-nearest-size {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: white;
+}
+
+/* Footer */
+.custom-size-footer {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.custom-size-save-btn {
+  background: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.custom-size-save-btn:hover {
+  background: #333;
+}
+
+/* Inline Display Mode */
+.custom-size-inline {
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  background: #f9f9f9;
+}
+
+.custom-size-inline-image {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.custom-size-inline .custom-size-note {
+  margin-bottom: 15px;
+}
+
+.custom-size-inline .custom-size-fields {
+  gap: 15px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .custom-size-modal {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .custom-size-inline {
+    padding: 15px;
+  }
+}

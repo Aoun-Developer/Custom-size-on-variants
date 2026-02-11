@@ -1,0 +1,18 @@
+{% schema %}
+{
+  "name": "Custom Size Modal",
+  "target": "body",
+  "stylesheet": "custom-size.css",
+  "javascript": "custom-size.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "modal_trigger_selector",
+      "label": "Trigger Selector",
+      "info": "CSS selector for the variant picker (optional)"
+    }
+  ]
+}
+{% endschema %}
+
+<div id="custom-size-modal-container" data-shop="{{ shop.permanent_domain }}"></div>
