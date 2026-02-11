@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const shop = container.dataset.shop;
     let currentSet = null;
+    let lastChecked = '';
 
     const getProductForm = () => document.querySelector('form[action^="/cart/add"]');
 
@@ -29,16 +30,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const uniqueValues = new Set([...inputs].map(el => el.value || el.innerText).filter(v => v));
         const selectedOptions = Array.from(uniqueValues).map(handleize).filter(t => t);
+        const variantKey = selectedOptions.sort().join(',');
+
+        if (variantKey === lastChecked) return;
+        lastChecked = variantKey;
 
         if (selectedOptions.length === 0) return;
 
         try {
             // Try proxy first, then direct API
-            let apiUrl = `/apps/custom-size/api/custom-size?shop=${shop}&variant=${encodeURIComponent(selectedOptions.join(','))}`;
+            let apiUrl = `/apps/custom-size/api/custom-size?shop=${shop}&variant=${encodeURIComponent(variantKey)}`;
             let res = await fetch(apiUrl);
 
             if (!res.ok && res.status === 404) {
-                apiUrl = `/api/custom-size?shop=${shop}&variant=${encodeURIComponent(selectedOptions.join(','))}`;
+                apiUrl = `/api/custom-size?shop=${shop}&variant=${encodeURIComponent(variantKey)}`;
                 res = await fetch(apiUrl);
             }
 
@@ -86,18 +91,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.id = 'custom-size-inline-container';
         div.className = 'custom-size-inline';
+        div.style.marginTop = '15px';
+        div.style.marginBottom = '15px';
         div.innerHTML = buildHtml(set);
 
         const form = getProductForm();
-        const selector = form?.querySelector('variant-radios, variant-selects, .product-form__input, [class*="variant"]');
-        selector ? selector.after(div) : form?.prepend(div);
+        if (form) {
+            // PLACEMENT LOGIC: Try to insert BEFORE the buttons, or AFTER the last variant input
+            const buttons = form.querySelector('.product-form__buttons, .shopify-payment-button, [name="add"]');
+            if (buttons) {
+                // If buttons are found, insert BEFORE them (best for being below variants)
+                const container = buttons.closest('.product-form__buttons') || buttons;
+                container.before(div);
+            } else {
+                // Fallback: try to find the last variant selector
+                const variants = form.querySelectorAll('variant-radios, variant-selects, fieldset.product-form__input, [class*="variant"]');
+                if (variants.length > 0) {
+                    variants[variants.length - 1].after(div);
+                } else {
+                    form.appendChild(div);
+                }
+            }
+
+            form.addEventListener('submit', () => {
+                if (currentSet?.displayStyle === 'INLINE') appendInputs(div);
+            });
+        }
 
         div.querySelectorAll('.custom-size-input').forEach(i =>
             i.addEventListener('input', () => validateInputs(div)));
-
-        form?.addEventListener('submit', () => {
-            if (currentSet?.displayStyle === 'INLINE') appendInputs(div);
-        });
 
         validateInputs(div);
     };
@@ -208,5 +230,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>` : '';
     };
 
-    setInterval(checkVariant, 1000);
+    // Instant check
+    checkVariant();
+
+    // Event listener for faster updates
+    document.addEventListener('change', (e) => {
+        if (e.target.matches('input[type="radio"], select, option, input[name*="option"]')) {
+            setTimeout(checkVariant, 50); // Small delay to allow value to update
+        }
+    });
+
+    setInterval(checkVariant, 2000); // Polling as fallback
 });

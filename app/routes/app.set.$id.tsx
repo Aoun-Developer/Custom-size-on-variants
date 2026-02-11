@@ -268,9 +268,9 @@ export default function SetEditor() {
                                                             shopify.toast.show("Upload failed: " + (createData.error || "Unknown error"));
                                                         }
                                                     }
-                                                } catch (err) {
+                                                } catch (err: any) {
                                                     console.error("Upload error:", err);
-                                                    shopify.toast.show("Upload failed. Check console.");
+                                                    shopify.toast.show(`Upload failed: ${err.message}`);
                                                 }
                                             }
                                         }}
