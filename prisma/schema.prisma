@@ -62,6 +62,8 @@ model CustomSizeField {
 model CustomSizeDesign {
   id               Int      @id @default(autoincrement())
   shop             String   @unique
+  // Layout
+  imageLayout      String?  @default("vertical") // "vertical" or "horizontal"
   // Backgrounds
   modalBgColor     String?
   // Borders

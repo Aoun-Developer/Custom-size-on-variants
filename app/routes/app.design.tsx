@@ -58,16 +58,18 @@ export default function DesignSettings() {
 
     const handleSave = () => {
         const formData = new FormData();
-        formData.append("modalBgColor", modalBgColor);
-        formData.append("borderWidth", borderWidth);
-        formData.append("borderStyle", borderStyle);
-        formData.append("borderColor", borderColor);
-        formData.append("textColor", textColor);
-        formData.append("placeholderColor", placeholderColor);
-        formData.append("titleColor", titleColor);
-        formData.append("noteColor", noteColor);
-        formData.append("noteBgColor", noteBgColor);
-        formData.append("customCss", customCss);
+
+        // Only append non-empty values
+        if (modalBgColor) formData.append("modalBgColor", modalBgColor);
+        if (borderWidth) formData.append("borderWidth", borderWidth);
+        if (borderStyle) formData.append("borderStyle", borderStyle);
+        if (borderColor) formData.append("borderColor", borderColor);
+        if (textColor) formData.append("textColor", textColor);
+        if (placeholderColor) formData.append("placeholderColor", placeholderColor);
+        if (titleColor) formData.append("titleColor", titleColor);
+        if (noteColor) formData.append("noteColor", noteColor);
+        if (noteBgColor) formData.append("noteBgColor", noteBgColor);
+        if (customCss) formData.append("customCss", customCss);
 
         submit(formData, { method: "post" });
     };
@@ -91,12 +93,12 @@ export default function DesignSettings() {
                                 <Text as="h2" variant="headingMd">General Styles</Text>
                                 <FormLayout>
                                     <FormLayout.Group>
-                                        <TextField label="Modal Background Color" type="color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
-                                        <TextField label="Text Color" type="color" value={textColor} onChange={setTextColor} autoComplete="off" />
+                                        <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
+                                        <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
                                     </FormLayout.Group>
                                     <FormLayout.Group>
-                                        <TextField label="Placeholder Color" type="color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
-                                        <TextField label="Title Color" type="color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
+                                        <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
+                                        <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
                                     </FormLayout.Group>
                                 </FormLayout>
                             </BlockStack>
@@ -110,7 +112,7 @@ export default function DesignSettings() {
                                         <FormLayout.Group>
                                             <TextField label="Border Width (px)" type="number" value={borderWidth} onChange={setBorderWidth} autoComplete="off" />
                                             <Select label="Border Style" options={['solid', 'dashed', 'dotted', 'none']} value={borderStyle} onChange={setBorderStyle} />
-                                            <TextField label="Border Color" type="color" value={borderColor} onChange={setBorderColor} autoComplete="off" />
+                                            <TextField label="Border Color" value={borderColor} onChange={setBorderColor} autoComplete="off" />
                                         </FormLayout.Group>
                                     </FormLayout>
                                 </BlockStack>
@@ -123,8 +125,8 @@ export default function DesignSettings() {
                                     <Text as="h2" variant="headingMd">Note Section</Text>
                                     <FormLayout>
                                         <FormLayout.Group>
-                                            <TextField label="Note Text Color" type="color" value={noteColor} onChange={setNoteColor} autoComplete="off" />
-                                            <TextField label="Note Background Color" type="color" value={noteBgColor} onChange={setNoteBgColor} autoComplete="off" />
+                                            <TextField label="Note Text Color" value={noteColor} onChange={setNoteColor} autoComplete="off" />
+                                            <TextField label="Note Background Color" value={noteBgColor} onChange={setNoteBgColor} autoComplete="off" />
                                         </FormLayout.Group>
                                     </FormLayout>
                                 </BlockStack>

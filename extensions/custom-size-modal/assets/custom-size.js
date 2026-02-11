@@ -83,20 +83,33 @@ document.addEventListener('DOMContentLoaded', () => {
             document.head.appendChild(style);
         }
 
+        // Build CSS rules conditionally
+        let modalStyles = [];
+        let inputStyles = [];
+        let placeholderStyles = [];
+        let titleStyles = [];
+        let noteStyles = [];
+
+        if (design.modalBgColor) modalStyles.push(`background-color: ${design.modalBgColor} !important;`);
+
+        if (design.borderWidth != null) inputStyles.push(`border-width: ${design.borderWidth}px !important;`);
+        if (design.borderStyle) inputStyles.push(`border-style: ${design.borderStyle} !important;`);
+        if (design.borderColor) inputStyles.push(`border-color: ${design.borderColor} !important;`);
+        if (design.textColor) inputStyles.push(`color: ${design.textColor} !important;`);
+
+        if (design.placeholderColor) placeholderStyles.push(`color: ${design.placeholderColor} !important;`);
+
+        if (design.titleColor) titleStyles.push(`color: ${design.titleColor} !important;`);
+
+        if (design.noteColor) noteStyles.push(`color: ${design.noteColor} !important;`);
+        if (design.noteBgColor) noteStyles.push(`background-color: ${design.noteBgColor} !important;`);
+
         style.innerHTML = `
-            .custom-size-modal { background-color: ${design.modalBgColor || '#fff'} !important; }
-            .custom-size-input { 
-                border-width: ${design.borderWidth}px !important;
-                border-style: ${design.borderStyle || 'solid'} !important;
-                border-color: ${design.borderColor || '#ddd'} !important;
-                color: ${design.textColor || '#333'} !important;
-            }
-            .custom-size-input::placeholder { color: ${design.placeholderColor || '#999'} !important; }
-            .custom-size-header h2, .custom-size-set-section h3 { color: ${design.titleColor || '#000'} !important; }
-            .custom-size-note { 
-                color: ${design.noteColor || '#666'} !important; 
-                background-color: ${design.noteBgColor || '#f9f9f9'} !important;
-            }
+            ${modalStyles.length ? `.custom-size-modal { ${modalStyles.join(' ')} }` : ''}
+            ${inputStyles.length ? `.custom-size-input { ${inputStyles.join(' ')} }` : ''}
+            ${placeholderStyles.length ? `.custom-size-input::placeholder { ${placeholderStyles.join(' ')} }` : ''}
+            ${titleStyles.length ? `.custom-size-header h2, .custom-size-set-section h3 { ${titleStyles.join(' ')} }` : ''}
+            ${noteStyles.length ? `.custom-size-note { ${noteStyles.join(' ')} }` : ''}
             ${design.customCss || ''}
         `;
     };
