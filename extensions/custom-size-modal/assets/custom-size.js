@@ -1,230 +1,116 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('custom-size-modal-container');
     if (!container) return;
 
     const shop = container.dataset.shop;
-    const productForm = document.querySelector('form[action="/cart/add"]');
-    if (!productForm) return;
-
     let currentSet = null;
-    let addToCartButton = productForm.querySelector('[name="add"], [type="submit"], button[type="submit"]');
-    let buyNowButton = document.querySelector('[name="checkout"], .shopify-payment-button__button');
 
-    // Helper to handleize string
-    const handleize = (str) => {
-        return str
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+    const getProductForm = () => document.querySelector('form[action^="/cart/add"]');
+
+    const getButtons = () => {
+        const form = getProductForm();
+        return {
+            add: form?.querySelector('[name="add"], [type="submit"], button[type="submit"]'),
+            buy: document.querySelector('[name="checkout"], .shopify-payment-button__button')
+        };
     };
 
-    // Function to check variant and fetch data
+    const handleize = str => str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
     const checkVariant = async () => {
-        const selectedOptions = Array.from(productForm.querySelectorAll('input:checked, option:checked'))
-            .map(el => handleize(el.value || el.innerText))
-            .filter(t => t);
+        const form = getProductForm();
+        if (!form) return;
+
+        // Strategy: Combine inputs from form, linked by ID, and global variant pickers
+        let inputs = [...form.querySelectorAll('input:checked, option:checked')];
+        const formId = form.getAttribute('id');
+        if (formId) inputs.push(...document.querySelectorAll(`input[form="${formId}"]:checked, option[form="${formId}"]:checked`));
+        if (inputs.length === 0) inputs.push(...document.querySelectorAll('variant-radios input:checked, variant-selects option:checked, .product-form__input input:checked'));
+
+        const uniqueValues = new Set([...inputs].map(el => el.value || el.innerText).filter(v => v));
+        const selectedOptions = Array.from(uniqueValues).map(handleize).filter(t => t);
 
         if (selectedOptions.length === 0) return;
 
-        // Try app proxy first (works in production), fallback to direct API (for development)
-        let apiUrl = `/apps/custom-size/api/custom-size?shop=${shop}&variant=${encodeURIComponent(selectedOptions.join(','))}`;
-
-        console.log('[Custom Size] Fetching from:', apiUrl);
-
         try {
+            // Try proxy first, then direct API
+            let apiUrl = `/apps/custom-size/api/custom-size?shop=${shop}&variant=${encodeURIComponent(selectedOptions.join(','))}`;
             let res = await fetch(apiUrl);
 
-            // If proxy doesn't work (404 in development), try direct API route
             if (!res.ok && res.status === 404) {
-                console.log('[Custom Size] Proxy not available, trying direct API');
                 apiUrl = `/api/custom-size?shop=${shop}&variant=${encodeURIComponent(selectedOptions.join(','))}`;
                 res = await fetch(apiUrl);
             }
 
-            if (!res.ok) {
-                console.error('[Custom Size] API error:', res.status);
-                return;
-            }
+            if (!res.ok) return;
             const data = await res.json();
-            console.log('[Custom Size] API response:', data);
 
             if (data.set) {
                 currentSet = data.set;
-                if (data.set.displayStyle === 'INLINE') {
-                    renderInline(data.set);
-                } else {
-                    renderModal(data.set);
-                }
+                data.set.displayStyle === 'INLINE' ? renderInline(data.set) : renderModal(data.set);
             } else {
                 currentSet = null;
                 closeModal();
                 removeInline();
-                enableButtons();
+                toggleButtons(true);
             }
-        } catch (e) {
-            console.error("Error fetching custom size set", e);
-        }
+        } catch (e) { console.error(e); }
     };
 
-    // Disable/Enable buttons
-    const disableButtons = () => {
-        if (addToCartButton) {
-            addToCartButton.disabled = true;
-            addToCartButton.style.opacity = '0.5';
-            addToCartButton.style.cursor = 'not-allowed';
-        }
-        if (buyNowButton) {
-            buyNowButton.disabled = true;
-            buyNowButton.style.opacity = '0.5';
-            buyNowButton.style.cursor = 'not-allowed';
-        }
-    };
-
-    const enableButtons = () => {
-        if (addToCartButton) {
-            addToCartButton.disabled = false;
-            addToCartButton.style.opacity = '1';
-            addToCartButton.style.cursor = 'pointer';
-        }
-        if (buyNowButton) {
-            buyNowButton.disabled = false;
-            buyNowButton.style.opacity = '1';
-            buyNowButton.style.cursor = 'pointer';
-        }
-    };
-
-    // Validate inputs
-    const validateInputs = (container) => {
-        const inputs = container.querySelectorAll('.custom-size-input');
-        let allFilled = true;
-        inputs.forEach(input => {
-            if (input.hasAttribute('required') && !input.value) {
-                allFilled = false;
+    const toggleButtons = (enable) => {
+        const { add, buy } = getButtons();
+        [add, buy].forEach(btn => {
+            if (btn) {
+                btn.disabled = !enable;
+                btn.style.opacity = enable ? '1' : '0.5';
+                btn.style.cursor = enable ? 'pointer' : 'not-allowed';
             }
         });
-
-        // Check nearest size if required
-        if (currentSet && currentSet.reqNearestSize) {
-            const nearestSizeSelect = container.querySelector('.custom-size-nearest-size');
-            if (nearestSizeSelect && !nearestSizeSelect.value) {
-                allFilled = false;
-            }
-        }
-
-        if (allFilled) {
-            enableButtons();
-        } else {
-            disableButtons();
-        }
     };
 
-    // Render Inline
+    const validateInputs = (scope) => {
+        const required = Array.from(scope.querySelectorAll('.custom-size-input[required]'));
+        let valid = required.every(input => input.value);
+
+        if (currentSet?.reqNearestSize) {
+            const nearest = scope.querySelector('.custom-size-nearest-size');
+            if (nearest && !nearest.value) valid = false;
+        }
+        toggleButtons(valid);
+    };
+
     const renderInline = (set) => {
-        removeInline(); // Remove existing
-        disableButtons();
+        removeInline();
+        toggleButtons(false);
 
-        const inlineContainer = document.createElement('div');
-        inlineContainer.id = 'custom-size-inline-container';
-        inlineContainer.className = 'custom-size-inline';
+        const div = document.createElement('div');
+        div.id = 'custom-size-inline-container';
+        div.className = 'custom-size-inline';
+        div.innerHTML = buildHtml(set);
 
-        let nearestSizeHTML = '';
-        if (set.reqNearestSize) {
-            // Fetch size options from product
-            const sizeOptions = Array.from(productForm.querySelectorAll('select[name*="Size"] option, input[name*="Size"]'))
-                .map(el => el.value || el.innerText)
-                .filter(val => val && val.toLowerCase() !== 'custom-size' && val.toLowerCase() !== 'custom size');
+        const form = getProductForm();
+        const selector = form?.querySelector('variant-radios, variant-selects, .product-form__input, [class*="variant"]');
+        selector ? selector.after(div) : form?.prepend(div);
 
-            if (sizeOptions.length > 0) {
-                nearestSizeHTML = `
-                    <div class="custom-size-field">
-                        <label>Please select one option from nearest size*</label>
-                        <select class="custom-size-nearest-size custom-size-input" name="properties[Nearest Size]" required>
-                            <option value="">Choose your nearest size</option>
-                            ${sizeOptions.map(size => `<option value="${size}">${size}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            }
-        }
+        div.querySelectorAll('.custom-size-input').forEach(i =>
+            i.addEventListener('input', () => validateInputs(div)));
 
-        inlineContainer.innerHTML = `
-            ${set.noteTitle || set.noteContent ? `
-                <div class="custom-size-note">
-                    ${set.noteTitle ? `<h3>${set.noteTitle}</h3>` : ''}
-                    ${set.noteContent ? `<p>${set.noteContent.replace(/\n/g, '<br>')}</p>` : ''}
-                </div>
-            ` : ''}
-            ${set.imageUrl ? `<img src="${set.imageUrl}" alt="${set.name}" class="custom-size-inline-image" />` : ''}
-            <div class="custom-size-fields">
-                ${nearestSizeHTML}
-                ${set.fields.map(field => `
-                    <div class="custom-size-field">
-                        <label>${field.label}${field.required ? '*' : ''}</label>
-                        <input type="${field.type}" name="properties[${field.label}]" ${field.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        // Insert after variant selector
-        const variantSelector = productForm.querySelector('.product-form__input, .product-single__variants, [class*="variant"]');
-        if (variantSelector) {
-            variantSelector.after(inlineContainer);
-        } else {
-            productForm.prepend(inlineContainer);
-        }
-
-        // Add event listeners for validation
-        inlineContainer.querySelectorAll('.custom-size-input').forEach(input => {
-            input.addEventListener('input', () => validateInputs(inlineContainer));
-            input.addEventListener('change', () => validateInputs(inlineContainer));
+        form?.addEventListener('submit', () => {
+            if (currentSet?.displayStyle === 'INLINE') appendInputs(div);
         });
 
-        // Initial validation
-        validateInputs(inlineContainer);
-
-        // Append inputs to form on submit
-        productForm.addEventListener('submit', (e) => {
-            if (currentSet && currentSet.displayStyle === 'INLINE') {
-                appendInputsToForm(inlineContainer);
-            }
-        });
+        validateInputs(div);
     };
 
-    const removeInline = () => {
-        const existing = document.getElementById('custom-size-inline-container');
-        if (existing) existing.remove();
-    };
+    const removeInline = () => document.getElementById('custom-size-inline-container')?.remove();
 
-    // Render Modal
     const renderModal = (set) => {
         if (document.getElementById('custom-size-modal-overlay')) return;
-        disableButtons();
+        toggleButtons(false);
 
         const overlay = document.createElement('div');
         overlay.id = 'custom-size-modal-overlay';
         overlay.className = 'custom-size-modal-overlay';
-
-        let nearestSizeHTML = '';
-        if (set.reqNearestSize) {
-            const sizeOptions = Array.from(productForm.querySelectorAll('select[name*="Size"] option, input[name*="Size"]'))
-                .map(el => el.value || el.innerText)
-                .filter(val => val && val.toLowerCase() !== 'custom-size' && val.toLowerCase() !== 'custom size');
-
-            if (sizeOptions.length > 0) {
-                nearestSizeHTML = `
-                    <div class="custom-size-field">
-                        <label>Please select one option from nearest size*</label>
-                        <select class="custom-size-nearest-size custom-size-input" name="properties[Nearest Size]" required>
-                            <option value="">Choose your nearest size</option>
-                            ${sizeOptions.map(size => `<option value="${size}">${size}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            }
-        }
-
         overlay.innerHTML = `
             <div class="custom-size-modal">
                 <div class="custom-size-header">
@@ -232,91 +118,95 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2>${set.name}</h2>
                     <button class="custom-size-close">&times;</button>
                 </div>
-                ${set.noteTitle || set.noteContent ? `
-                    <div class="custom-size-note">
-                        ${set.noteTitle ? `<h3>${set.noteTitle}</h3>` : ''}
-                        ${set.noteContent ? `<p>${set.noteContent.replace(/\n/g, '<br>')}</p>` : ''}
-                    </div>
-                ` : ''}
+                ${buildNoteHtml(set)}
                 <div class="custom-size-body">
                     <div class="custom-size-fields">
-                        ${nearestSizeHTML}
-                        ${set.fields.map(field => `
+                        ${buildNearestSizeHtml(set)}
+                        ${set.fields.map(f => `
                             <div class="custom-size-field">
-                                <label>${field.label}${field.required ? '*' : ''}</label>
-                                <input type="${field.type}" name="properties[${field.label}]" ${field.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
+                                <label>${f.label}${f.required ? '*' : ''}</label>
+                                <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
                             </div>
                         `).join('')}
                     </div>
                 </div>
-                <div class="custom-size-footer">
-                    <button class="custom-size-save-btn">Save Measurements</button>
-                </div>
-            </div>
-        `;
+                <div class="custom-size-footer"><button class="custom-size-save-btn">Save Measurements</button></div>
+            </div>`;
 
         document.body.appendChild(overlay);
 
-        // Add event listeners for validation
-        overlay.querySelectorAll('.custom-size-input').forEach(input => {
-            input.addEventListener('input', () => validateInputs(overlay));
-            input.addEventListener('change', () => validateInputs(overlay));
-        });
-
-        // Initial validation
+        const inputs = overlay.querySelectorAll('.custom-size-input');
+        inputs.forEach(i => i.addEventListener('input', () => validateInputs(overlay)));
         validateInputs(overlay);
 
-        // Close handlers
         overlay.querySelector('.custom-size-close').addEventListener('click', closeModal);
         overlay.querySelector('.custom-size-save-btn').addEventListener('click', (e) => {
             e.preventDefault();
-
-            // Validate
-            const inputs = overlay.querySelectorAll('input[required], select[required]');
-            let valid = true;
-            inputs.forEach(input => {
-                if (!input.value) {
-                    valid = false;
-                    input.classList.add('error');
-                } else {
-                    input.classList.remove('error');
-                }
-            });
-
-            if (!valid) {
+            const invalid = Array.from(inputs).filter(i => i.hasAttribute('required') && !i.value);
+            if (invalid.length) {
+                invalid.forEach(i => i.classList.add('error'));
                 alert('Please fill in all required fields');
                 return;
             }
-
-            appendInputsToForm(overlay);
+            appendInputs(overlay);
             closeModal();
-            enableButtons();
+            toggleButtons(true);
         });
     };
 
-    const closeModal = () => {
-        const overlay = document.getElementById('custom-size-modal-overlay');
-        if (overlay) overlay.remove();
-    };
+    const closeModal = () => document.getElementById('custom-size-modal-overlay')?.remove();
 
-    const appendInputsToForm = (container) => {
-        // Remove old hidden inputs
-        const old = productForm.querySelectorAll('.custom-size-hidden-input');
-        old.forEach(el => el.remove());
-
-        const inputs = container.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            if (input.value) {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = input.name;
-                hidden.value = input.value;
-                hidden.className = 'custom-size-hidden-input';
-                productForm.appendChild(hidden);
+    const appendInputs = (container) => {
+        const form = getProductForm();
+        if (!form) return;
+        form.querySelectorAll('.custom-size-hidden-input').forEach(e => e.remove());
+        container.querySelectorAll('input, select').forEach(i => {
+            if (i.value) {
+                const h = document.createElement('input');
+                h.type = 'hidden';
+                h.name = i.name;
+                h.value = i.value;
+                h.className = 'custom-size-hidden-input';
+                form.appendChild(h);
             }
         });
     };
 
-    // Init
+    const buildHtml = (set) => `
+        ${buildNoteHtml(set)}
+        ${set.imageUrl ? `<img src="${set.imageUrl}" alt="${set.name}" class="custom-size-inline-image" />` : ''}
+        <div class="custom-size-fields">
+            ${buildNearestSizeHtml(set)}
+            ${set.fields.map(f => `
+                <div class="custom-size-field">
+                    <label>${f.label}${f.required ? '*' : ''}</label>
+                    <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
+                </div>
+            `).join('')}
+        </div>`;
+
+    const buildNoteHtml = (set) => (set.noteTitle || set.noteContent) ? `
+        <div class="custom-size-note">
+            ${set.noteTitle ? `<h3>${set.noteTitle}</h3>` : ''}
+            ${set.noteContent ? `<p>${set.noteContent.replace(/\n/g, '<br>')}</p>` : ''}
+        </div>` : '';
+
+    const buildNearestSizeHtml = (set) => {
+        if (!set.reqNearestSize) return '';
+        const form = getProductForm();
+        const opts = Array.from(form ? form.querySelectorAll('select[name*="Size"] option, input[name*="Size"]') : [])
+            .map(e => e.value || e.innerText)
+            .filter(v => v && !v.toLowerCase().includes('custom'));
+
+        return opts.length ? `
+            <div class="custom-size-field">
+                <label>Please select one option from nearest size*</label>
+                <select class="custom-size-nearest-size custom-size-input" name="properties[Nearest Size]" required>
+                    <option value="">Choose your nearest size</option>
+                    ${opts.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+            </div>` : '';
+    };
+
     setInterval(checkVariant, 1000);
 });
