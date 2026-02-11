@@ -15,7 +15,7 @@ import {
     Box,
     Banner
 } from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { PRO_PLAN } from "../constants";
 import prisma from "../db.server";
@@ -139,6 +139,7 @@ export default function SetEditor() {
     const { set, isPro } = useLoaderData<typeof loader>();
     const submit = useSubmit();
     const nav = useNavigation();
+    const shopify = useAppBridge();
 
     const [name, setName] = useState(set?.name || "");
     const [triggerVariant, setTriggerVariant] = useState(set?.triggerVariant || "Custom Size");
@@ -211,17 +212,29 @@ export default function SetEditor() {
                                             const file = e.target.files?.[0];
                                             if (file) {
                                                 try {
+                                                    // 0. Get Token
+                                                    const token = await shopify.idToken();
+                                                    const authHeaders = { "Authorization": `Bearer ${token}` };
+
                                                     // 1. Get Upload Param
                                                     const formData = new FormData();
                                                     formData.append("filename", file.name);
                                                     formData.append("fileType", file.type);
 
-                                                    const response = await fetch("/app/upload", { method: "POST", body: formData });
-                                                    if (!response.ok) throw new Error("Failed to get upload params");
+                                                    const response = await fetch("/app/upload", {
+                                                        method: "POST",
+                                                        body: formData,
+                                                        headers: authHeaders
+                                                    });
+
+                                                    if (!response.ok) {
+                                                        const errText = await response.text();
+                                                        throw new Error(`Failed to get upload params: ${response.status} ${errText}`);
+                                                    }
                                                     const data = await response.json();
 
                                                     if (data.target) {
-                                                        // 2. Upload to Target
+                                                        // 2. Upload to Target (No Auth Header needed for external URL)
                                                         const { url, parameters } = data.target;
                                                         const uploadData = new FormData();
                                                         parameters.forEach((p: any) => uploadData.append(p.name, p.value));
@@ -235,8 +248,16 @@ export default function SetEditor() {
                                                         createFormData.append("mode", "create");
                                                         createFormData.append("resourceUrl", data.target.resourceUrl);
 
-                                                        const createResponse = await fetch("/app/upload", { method: "POST", body: createFormData });
-                                                        if (!createResponse.ok) throw new Error("Failed to create file record");
+                                                        const createResponse = await fetch("/app/upload", {
+                                                            method: "POST",
+                                                            body: createFormData,
+                                                            headers: authHeaders
+                                                        });
+
+                                                        if (!createResponse.ok) {
+                                                            const errText = await createResponse.text();
+                                                            throw new Error(`Failed to create file record: ${createResponse.status} ${errText}`);
+                                                        }
                                                         const createData = await createResponse.json();
 
                                                         if (createData.file?.url) {
