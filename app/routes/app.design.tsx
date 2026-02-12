@@ -54,6 +54,18 @@ export default function DesignSettings() {
     const [noteBgColor, setNoteBgColor] = useState(design?.noteBgColor || "#f9f9f9");
     const [customCss, setCustomCss] = useState(design?.customCss || "");
 
+    // Font Sizes - Desktop
+    const [noteTitleFontSizeDesktop, setNoteTitleFontSizeDesktop] = useState(design?.noteTitleFontSizeDesktop || "18px");
+    const [noteContentFontSizeDesktop, setNoteContentFontSizeDesktop] = useState(design?.noteContentFontSizeDesktop || "14px");
+    const [fieldTitleFontSizeDesktop, setFieldTitleFontSizeDesktop] = useState(design?.fieldTitleFontSizeDesktop || "14px");
+    const [fieldPlaceholderFontSizeDesktop, setFieldPlaceholderFontSizeDesktop] = useState(design?.fieldPlaceholderFontSizeDesktop || "13px");
+
+    // Font Sizes - Mobile
+    const [noteTitleFontSizeMobile, setNoteTitleFontSizeMobile] = useState(design?.noteTitleFontSizeMobile || "16px");
+    const [noteContentFontSizeMobile, setNoteContentFontSizeMobile] = useState(design?.noteContentFontSizeMobile || "13px");
+    const [fieldTitleFontSizeMobile, setFieldTitleFontSizeMobile] = useState(design?.fieldTitleFontSizeMobile || "13px");
+    const [fieldPlaceholderFontSizeMobile, setFieldPlaceholderFontSizeMobile] = useState(design?.fieldPlaceholderFontSizeMobile || "12px");
+
     const isSaving = nav.state === "submitting";
     const [isDirty, setIsDirty] = useState(false);
 
@@ -68,7 +80,15 @@ export default function DesignSettings() {
             titleColor: design?.titleColor || "#000000",
             noteColor: design?.noteColor || "#666666",
             noteBgColor: design?.noteBgColor || "#f9f9f9",
-            customCss: design?.customCss || ""
+            customCss: design?.customCss || "",
+            noteTitleFontSizeDesktop: design?.noteTitleFontSizeDesktop || "18px",
+            noteContentFontSizeDesktop: design?.noteContentFontSizeDesktop || "14px",
+            fieldTitleFontSizeDesktop: design?.fieldTitleFontSizeDesktop || "14px",
+            fieldPlaceholderFontSizeDesktop: design?.fieldPlaceholderFontSizeDesktop || "13px",
+            noteTitleFontSizeMobile: design?.noteTitleFontSizeMobile || "16px",
+            noteContentFontSizeMobile: design?.noteContentFontSizeMobile || "13px",
+            fieldTitleFontSizeMobile: design?.fieldTitleFontSizeMobile || "13px",
+            fieldPlaceholderFontSizeMobile: design?.fieldPlaceholderFontSizeMobile || "12px",
         };
 
         const currentState = {
@@ -81,14 +101,26 @@ export default function DesignSettings() {
             titleColor,
             noteColor,
             noteBgColor,
-            customCss
+            customCss,
+            noteTitleFontSizeDesktop,
+            noteContentFontSizeDesktop,
+            fieldTitleFontSizeDesktop,
+            fieldPlaceholderFontSizeDesktop,
+            noteTitleFontSizeMobile,
+            noteContentFontSizeMobile,
+            fieldTitleFontSizeMobile,
+            fieldPlaceholderFontSizeMobile,
         };
 
         setIsDirty(JSON.stringify(initialState) !== JSON.stringify(currentState));
     }, [
         modalBgColor, borderWidth, borderStyle, borderColor,
         textColor, placeholderColor, titleColor, noteColor, noteBgColor,
-        customCss, design
+        customCss, design,
+        noteTitleFontSizeDesktop, noteContentFontSizeDesktop,
+        fieldTitleFontSizeDesktop, fieldPlaceholderFontSizeDesktop,
+        noteTitleFontSizeMobile, noteContentFontSizeMobile,
+        fieldTitleFontSizeMobile, fieldPlaceholderFontSizeMobile
     ]);
 
     const handleSave = () => {
@@ -103,6 +135,14 @@ export default function DesignSettings() {
         formData.append("noteColor", noteColor);
         formData.append("noteBgColor", noteBgColor);
         formData.append("customCss", customCss);
+        formData.append("noteTitleFontSizeDesktop", noteTitleFontSizeDesktop);
+        formData.append("noteContentFontSizeDesktop", noteContentFontSizeDesktop);
+        formData.append("fieldTitleFontSizeDesktop", fieldTitleFontSizeDesktop);
+        formData.append("fieldPlaceholderFontSizeDesktop", fieldPlaceholderFontSizeDesktop);
+        formData.append("noteTitleFontSizeMobile", noteTitleFontSizeMobile);
+        formData.append("noteContentFontSizeMobile", noteContentFontSizeMobile);
+        formData.append("fieldTitleFontSizeMobile", fieldTitleFontSizeMobile);
+        formData.append("fieldPlaceholderFontSizeMobile", fieldPlaceholderFontSizeMobile);
         submit(formData, { method: "post" });
     };
 
@@ -160,6 +200,36 @@ export default function DesignSettings() {
                                         <FormLayout.Group>
                                             <TextField label="Note Text Color" value={noteColor} onChange={setNoteColor} autoComplete="off" />
                                             <TextField label="Note Background Color" value={noteBgColor} onChange={setNoteBgColor} autoComplete="off" />
+                                        </FormLayout.Group>
+                                        <Text as="h3" variant="headingSm">Note Font Sizes (Desktop)</Text>
+                                        <FormLayout.Group>
+                                            <TextField label="Note Title Font Size" value={noteTitleFontSizeDesktop} onChange={setNoteTitleFontSizeDesktop} autoComplete="off" placeholder="18px" />
+                                            <TextField label="Note Content Font Size" value={noteContentFontSizeDesktop} onChange={setNoteContentFontSizeDesktop} autoComplete="off" placeholder="14px" />
+                                        </FormLayout.Group>
+                                        <Text as="h3" variant="headingSm">Note Font Sizes (Mobile)</Text>
+                                        <FormLayout.Group>
+                                            <TextField label="Note Title Font Size (Mobile)" value={noteTitleFontSizeMobile} onChange={setNoteTitleFontSizeMobile} autoComplete="off" placeholder="16px" />
+                                            <TextField label="Note Content Font Size (Mobile)" value={noteContentFontSizeMobile} onChange={setNoteContentFontSizeMobile} autoComplete="off" placeholder="13px" />
+                                        </FormLayout.Group>
+                                    </FormLayout>
+                                </BlockStack>
+                            </Card>
+                        </Box>
+
+                        <Box paddingBlockStart="400">
+                            <Card>
+                                <BlockStack gap="400">
+                                    <Text as="h2" variant="headingMd">Fields Typography</Text>
+                                    <FormLayout>
+                                        <Text as="h3" variant="headingSm">Desktop</Text>
+                                        <FormLayout.Group>
+                                            <TextField label="Field Title Font Size" value={fieldTitleFontSizeDesktop} onChange={setFieldTitleFontSizeDesktop} autoComplete="off" placeholder="14px" />
+                                            <TextField label="Field Placeholder Font Size" value={fieldPlaceholderFontSizeDesktop} onChange={setFieldPlaceholderFontSizeDesktop} autoComplete="off" placeholder="13px" />
+                                        </FormLayout.Group>
+                                        <Text as="h3" variant="headingSm">Mobile</Text>
+                                        <FormLayout.Group>
+                                            <TextField label="Field Title Font Size (Mobile)" value={fieldTitleFontSizeMobile} onChange={setFieldTitleFontSizeMobile} autoComplete="off" placeholder="13px" />
+                                            <TextField label="Field Placeholder Font Size (Mobile)" value={fieldPlaceholderFontSizeMobile} onChange={setFieldPlaceholderFontSizeMobile} autoComplete="off" placeholder="12px" />
                                         </FormLayout.Group>
                                     </FormLayout>
                                 </BlockStack>

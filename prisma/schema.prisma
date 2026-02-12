@@ -86,6 +86,16 @@ model CustomSizeDesign {
   titleColor       String?
   noteColor        String?
   noteBgColor      String?
+  // Font Sizes Desktop
+  noteTitleFontSizeDesktop      String?  @default("18px")
+  noteContentFontSizeDesktop    String?  @default("14px")
+  fieldTitleFontSizeDesktop     String?  @default("14px")
+  fieldPlaceholderFontSizeDesktop String?  @default("13px")
+  // Font Sizes Mobile
+  noteTitleFontSizeMobile       String?  @default("16px")
+  noteContentFontSizeMobile     String?  @default("13px")
+  fieldTitleFontSizeMobile      String?  @default("13px")
+  fieldPlaceholderFontSizeMobile String?  @default("12px")
   // Custom CSS
   customCss        String?
   createdAt        DateTime @default(now())
