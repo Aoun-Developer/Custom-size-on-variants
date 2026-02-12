@@ -55,24 +55,18 @@
 
 /* Note Section */
 .custom-size-note {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
-  padding: 15px;
   margin-bottom: 15px;
 }
 
 .custom-size-note h3 {
   margin: 0 0 10px 0;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #856404;
+  font-size: 1.3rem;
+  text-transform: uppercase;
 }
 
 .custom-size-note p {
   margin: 0;
   font-size: 0.9rem;
-  color: #856404;
   line-height: 1.5;
 }
 
@@ -80,13 +74,14 @@
 .custom-size-fields {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .custom-size-field {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .custom-size-field label {
@@ -99,6 +94,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+  max-width: 100px;
 }
 
 .custom-size-input.error {
@@ -184,21 +180,13 @@
 }
 
 @media (max-width: 600px) {
-  .custom-size-set-layout {
-    flex-direction: column !important;
-  }
-
   .custom-size-image-container {
     flex: 0 0 auto;
   }
 }
 
 .custom-size-inline {
-  border: 2px solid #000;
-  border-radius: 8px;
-  padding: 20px;
   margin: 20px 0;
-  background: #f9f9f9;
 }
 
 .custom-size-set-block {

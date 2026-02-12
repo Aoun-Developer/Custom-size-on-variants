@@ -43,7 +43,6 @@ export default function DesignSettings() {
     const shopify = useAppBridge();
 
     // State initialization from loader data
-    const [imageLayout, setImageLayout] = useState(design?.imageLayout || "vertical");
     const [modalBgColor, setModalBgColor] = useState(design?.modalBgColor || "#ffffff");
     const [borderWidth, setBorderWidth] = useState(design?.borderWidth?.toString() || "1");
     const [borderStyle, setBorderStyle] = useState(design?.borderStyle || "solid");
@@ -56,10 +55,44 @@ export default function DesignSettings() {
     const [customCss, setCustomCss] = useState(design?.customCss || "");
 
     const isSaving = nav.state === "submitting";
+    const [isDirty, setIsDirty] = useState(false);
+
+    useEffect(() => {
+        const initialState = {
+            modalBgColor: design?.modalBgColor || "#ffffff",
+            borderWidth: design?.borderWidth?.toString() || "1",
+            borderStyle: design?.borderStyle || "solid",
+            borderColor: design?.borderColor || "#dddddd",
+            textColor: design?.textColor || "#333333",
+            placeholderColor: design?.placeholderColor || "#999999",
+            titleColor: design?.titleColor || "#000000",
+            noteColor: design?.noteColor || "#666666",
+            noteBgColor: design?.noteBgColor || "#f9f9f9",
+            customCss: design?.customCss || ""
+        };
+
+        const currentState = {
+            modalBgColor,
+            borderWidth,
+            borderStyle,
+            borderColor,
+            textColor,
+            placeholderColor,
+            titleColor,
+            noteColor,
+            noteBgColor,
+            customCss
+        };
+
+        setIsDirty(JSON.stringify(initialState) !== JSON.stringify(currentState));
+    }, [
+        modalBgColor, borderWidth, borderStyle, borderColor,
+        textColor, placeholderColor, titleColor, noteColor, noteBgColor,
+        customCss, design
+    ]);
 
     const handleSave = () => {
         const formData = new FormData();
-        formData.append("imageLayout", imageLayout);
         formData.append("modalBgColor", modalBgColor);
         formData.append("borderWidth", borderWidth);
         formData.append("borderStyle", borderStyle);
@@ -82,49 +115,32 @@ export default function DesignSettings() {
     return (
         <Page>
             <TitleBar title="Design Settings">
-                <button variant="primary" onClick={handleSave} disabled={isSaving}>Save</button>
+                <button variant="primary" onClick={handleSave} disabled={isSaving || !isDirty}>Save</button>
             </TitleBar>
             <BlockStack gap="500">
                 <Layout>
                     <Layout.Section>
                         <Card>
                             <BlockStack gap="400">
-                                <Text as="h2" variant="headingMd">Layout Configuration</Text>
-                                <Select
-                                    label="Image & Fields Layout"
-                                    options={[
-                                        { label: 'Vertical Layout (Image on Top, Fields Below)', value: 'vertical' },
-                                        { label: 'Horizontal Layout (Image on Left, Fields on Right)', value: 'horizontal' }
-                                    ]}
-                                    value={imageLayout}
-                                    onChange={setImageLayout}
-                                    helpText="Choose how the header image and input fields are arranged in the modal"
-                                />
+                                <Text as="h2" variant="headingMd">General Styles</Text>
+                                <FormLayout>
+                                    <FormLayout.Group>
+                                        <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
+                                        <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
+                                    </FormLayout.Group>
+                                    <FormLayout.Group>
+                                        <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
+                                        <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
+                                    </FormLayout.Group>
+                                </FormLayout>
                             </BlockStack>
                         </Card>
 
                         <Box paddingBlockStart="400">
                             <Card>
                                 <BlockStack gap="400">
-                                    <Text as="h2" variant="headingMd">General Styles</Text>
-                                    <FormLayout>
-                                        <FormLayout.Group>
-                                            <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
-                                            <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
-                                        </FormLayout.Group>
-                                        <FormLayout.Group>
-                                            <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
-                                            <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
-                                        </FormLayout.Group>
-                                    </FormLayout>
-                                </BlockStack>
-                            </Card>
-                        </Box>
-
-                        <Box paddingBlockStart="400">
-                            <Card>
-                                <BlockStack gap="400">
                                     <Text as="h2" variant="headingMd">Borders</Text>
+                                    <Text as="h5" variant="headingMd">Input Fields</Text>
                                     <FormLayout>
                                         <FormLayout.Group>
                                             <TextField label="Border Width (px)" type="number" value={borderWidth} onChange={setBorderWidth} autoComplete="off" />

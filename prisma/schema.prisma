@@ -44,6 +44,11 @@ model CustomSizeSet {
   imageHeight           String?  @default("auto")
   imageContainerWidth   String?  @default("auto")
   fieldsContainerWidth  String?  @default("auto")
+  mobileImagePosition   String   @default("top")
+  mobileImageWidth      String?  @default("auto")
+  mobileImageHeight     String?  @default("auto")
+  mobileImageContainerWidth String?  @default("auto")
+  mobileFieldsContainerWidth String? @default("auto")
   displayStyle          String   @default("MODAL") // "MODAL" or "INLINE"
   noteTitle      String?
   noteContent    String?

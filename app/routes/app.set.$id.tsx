@@ -13,7 +13,8 @@ import {
     Text,
     InlineStack,
     Box,
-    Banner
+    Banner,
+    Tabs
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -65,6 +66,13 @@ export const action = async ({ request, params }: any) => {
     const imageHeight = formData.get("imageHeight") as string || "auto";
     const imageContainerWidth = formData.get("imageContainerWidth") as string || "auto";
     const fieldsContainerWidth = formData.get("fieldsContainerWidth") as string || "auto";
+
+    const mobileImagePosition = formData.get("mobileImagePosition") as string || "top";
+    const mobileImageWidth = formData.get("mobileImageWidth") as string || "auto";
+    const mobileImageHeight = formData.get("mobileImageHeight") as string || "auto";
+    const mobileImageContainerWidth = formData.get("mobileImageContainerWidth") as string || "auto";
+    const mobileFieldsContainerWidth = formData.get("mobileFieldsContainerWidth") as string || "auto";
+
     const fields = JSON.parse(formData.get("fields") as string);
 
     // Validation
@@ -103,6 +111,11 @@ export const action = async ({ request, params }: any) => {
                 imageHeight,
                 imageContainerWidth,
                 fieldsContainerWidth,
+                mobileImagePosition,
+                mobileImageWidth,
+                mobileImageHeight,
+                mobileImageContainerWidth,
+                mobileFieldsContainerWidth,
                 fields: {
                     create: fields.map((f: any, index: number) => ({
                         label: f.label,
@@ -135,6 +148,11 @@ export const action = async ({ request, params }: any) => {
                     imageHeight,
                     imageContainerWidth,
                     fieldsContainerWidth,
+                    mobileImagePosition,
+                    mobileImageWidth,
+                    mobileImageHeight,
+                    mobileImageContainerWidth,
+                    mobileFieldsContainerWidth,
                     fields: {
                         create: fields.map((f: any, index: number) => ({
                             label: f.label,
@@ -169,7 +187,16 @@ export default function SetEditor() {
     const [imageHeight, setImageHeight] = useState((set as any)?.imageHeight || "auto");
     const [imageContainerWidth, setImageContainerWidth] = useState((set as any)?.imageContainerWidth || "auto");
     const [fieldsContainerWidth, setFieldsContainerWidth] = useState((set as any)?.fieldsContainerWidth || "auto");
+
+    const [mobileImagePosition, setMobileImagePosition] = useState((set as any)?.mobileImagePosition || "top");
+    const [mobileImageWidth, setMobileImageWidth] = useState((set as any)?.mobileImageWidth || "auto");
+    const [mobileImageHeight, setMobileImageHeight] = useState((set as any)?.mobileImageHeight || "auto");
+    const [mobileImageContainerWidth, setMobileImageContainerWidth] = useState((set as any)?.mobileImageContainerWidth || "auto");
+    const [mobileFieldsContainerWidth, setMobileFieldsContainerWidth] = useState((set as any)?.mobileFieldsContainerWidth || "auto");
+
     const [fields, setFields] = useState<any[]>((set as any)?.fields || []);
+
+    const [selectedTab, setSelectedTab] = useState(0);
 
     const [newFieldLabel, setNewFieldLabel] = useState("");
     const isSaving = nav.state === "submitting";
@@ -179,6 +206,13 @@ export default function SetEditor() {
 
     // Effect to check for changes
     useEffect(() => {
+        const normalizeFields = (fs: any[]) => fs.map(f => ({
+            label: f.label,
+            type: f.type || "text",
+            required: !!f.required,
+            placeholder: f.placeholder || ""
+        }));
+
         const initialState = {
             name: set?.name || "",
             triggerVariant: set?.triggerVariant || "Custom Size",
@@ -186,13 +220,18 @@ export default function SetEditor() {
             displayStyle: set?.displayStyle || "MODAL",
             noteTitle: set?.noteTitle || "",
             noteContent: set?.noteContent || "",
-            reqNearestSize: (set as any)?.reqNearestSize || false,
+            reqNearestSize: !!(set as any)?.reqNearestSize,
             imagePosition: (set as any)?.imagePosition || "top",
             imageWidth: (set as any)?.imageWidth || "auto",
             imageHeight: (set as any)?.imageHeight || "auto",
             imageContainerWidth: (set as any)?.imageContainerWidth || "auto",
             fieldsContainerWidth: (set as any)?.fieldsContainerWidth || "auto",
-            fields: (set as any)?.fields || []
+            mobileImagePosition: (set as any)?.mobileImagePosition || "top",
+            mobileImageWidth: (set as any)?.mobileImageWidth || "auto",
+            mobileImageHeight: (set as any)?.mobileImageHeight || "auto",
+            mobileImageContainerWidth: (set as any)?.mobileImageContainerWidth || "auto",
+            mobileFieldsContainerWidth: (set as any)?.mobileFieldsContainerWidth || "auto",
+            fields: normalizeFields((set as any)?.fields || [])
         };
 
         const currentState = {
@@ -202,19 +241,24 @@ export default function SetEditor() {
             displayStyle,
             noteTitle,
             noteContent,
-            reqNearestSize,
+            reqNearestSize: !!reqNearestSize,
             imagePosition,
             imageWidth,
             imageHeight,
             imageContainerWidth,
             fieldsContainerWidth,
-            fields
+            mobileImagePosition,
+            mobileImageWidth,
+            mobileImageHeight,
+            mobileImageContainerWidth,
+            mobileFieldsContainerWidth,
+            fields: normalizeFields(fields)
         };
 
         // Simple deep comparison (sufficient for this data structure)
         const hasChanged = JSON.stringify(initialState) !== JSON.stringify(currentState);
         setIsDirty(hasChanged);
-    }, [name, triggerVariant, imageUrl, displayStyle, noteTitle, noteContent, reqNearestSize, imagePosition, imageWidth, imageHeight, imageContainerWidth, fieldsContainerWidth, fields, set]);
+    }, [name, triggerVariant, imageUrl, displayStyle, noteTitle, noteContent, reqNearestSize, imagePosition, imageWidth, imageHeight, imageContainerWidth, fieldsContainerWidth, mobileImagePosition, mobileImageWidth, mobileImageHeight, mobileImageContainerWidth, mobileFieldsContainerWidth, fields, set]);
 
 
     const handleAddField = () => {
@@ -241,6 +285,11 @@ export default function SetEditor() {
         formData.append("imageHeight", imageHeight);
         formData.append("imageContainerWidth", imageContainerWidth);
         formData.append("fieldsContainerWidth", fieldsContainerWidth);
+        formData.append("mobileImagePosition", mobileImagePosition);
+        formData.append("mobileImageWidth", mobileImageWidth);
+        formData.append("mobileImageHeight", mobileImageHeight);
+        formData.append("mobileImageContainerWidth", mobileImageContainerWidth);
+        formData.append("mobileFieldsContainerWidth", mobileFieldsContainerWidth);
         formData.append("fields", JSON.stringify(fields));
         submit(formData, { method: "post" });
     };
@@ -346,39 +395,88 @@ export default function SetEditor() {
                                     />
                                     <TextField label="Image URL (Manual)" value={imageUrl} onChange={setImageUrl} autoComplete="off" helpText="Or paste a URL directly" />
 
-                                    <InlineStack gap="400">
-                                        <div style={{ flex: 1 }}>
-                                            <div className="Polaris-Labelled__LabelWrapper">
-                                                <div className="Polaris-Label"><label id="imagePositionLabel" htmlFor="imagePosition" className="Polaris-Label__Text">Image Position</label></div>
-                                            </div>
-                                            <select
-                                                id="imagePosition"
-                                                value={imagePosition}
-                                                onChange={(e) => setImagePosition(e.target.value)}
-                                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                                            >
-                                                <option value="top">Top</option>
-                                                <option value="left">Left</option>
-                                                <option value="right">Right</option>
-                                                <option value="bottom">Bottom</option>
-                                            </select>
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <TextField label="Image Width" value={imageWidth} onChange={setImageWidth} autoComplete="off" placeholder="e.g. 100px or 100%" helpText="Leave empty for auto" />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <TextField label="Image Height" value={imageHeight} onChange={setImageHeight} autoComplete="off" placeholder="e.g. 100px" helpText="Leave empty for auto" />
-                                        </div>
-                                    </InlineStack>
+                                    <Tabs
+                                        tabs={[
+                                            { id: 'desktop', content: 'Desktop', panelID: 'desktop-panel' },
+                                            { id: 'mobile', content: 'Mobile', panelID: 'mobile-panel' }
+                                        ]}
+                                        selected={selectedTab}
+                                        onSelect={setSelectedTab}
+                                    />
 
-                                    <InlineStack gap="400">
-                                        <div style={{ flex: 1 }}>
-                                            <TextField label="Image Container Width" value={imageContainerWidth} onChange={setImageContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the image column" />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <TextField label="Fields Container Width" value={fieldsContainerWidth} onChange={setFieldsContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the input fields column" />
-                                        </div>
-                                    </InlineStack>
+                                    {selectedTab === 0 ? (
+                                        <>
+                                            <InlineStack gap="400">
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="Polaris-Labelled__LabelWrapper">
+                                                        <div className="Polaris-Label"><label id="imagePositionLabel" htmlFor="imagePosition" className="Polaris-Label__Text">Image Position</label></div>
+                                                    </div>
+                                                    <select
+                                                        id="imagePosition"
+                                                        value={imagePosition}
+                                                        onChange={(e) => setImagePosition(e.target.value)}
+                                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                                    >
+                                                        <option value="top">Top</option>
+                                                        <option value="left">Left</option>
+                                                        <option value="right">Right</option>
+                                                        <option value="bottom">Bottom</option>
+                                                    </select>
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Image Width" value={imageWidth} onChange={setImageWidth} autoComplete="off" placeholder="e.g. 100px or 100%" helpText="Leave empty for auto" />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Image Height" value={imageHeight} onChange={setImageHeight} autoComplete="off" placeholder="e.g. 100px" helpText="Leave empty for auto" />
+                                                </div>
+                                            </InlineStack>
+
+                                            <InlineStack gap="400">
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Image Container Width" value={imageContainerWidth} onChange={setImageContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the image column" />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Fields Container Width" value={fieldsContainerWidth} onChange={setFieldsContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the input fields column" />
+                                                </div>
+                                            </InlineStack>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <InlineStack gap="400">
+                                                <div style={{ flex: 1 }}>
+                                                    <div className="Polaris-Labelled__LabelWrapper">
+                                                        <div className="Polaris-Label"><label id="mobileImagePositionLabel" htmlFor="mobileImagePosition" className="Polaris-Label__Text">Mobile Image Position</label></div>
+                                                    </div>
+                                                    <select
+                                                        id="mobileImagePosition"
+                                                        value={mobileImagePosition}
+                                                        onChange={(e) => setMobileImagePosition(e.target.value)}
+                                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                                    >
+                                                        <option value="top">Top</option>
+                                                        <option value="left">Left</option>
+                                                        <option value="right">Right</option>
+                                                        <option value="bottom">Bottom</option>
+                                                    </select>
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Mobile Image Width" value={mobileImageWidth} onChange={setMobileImageWidth} autoComplete="off" placeholder="e.g. 100px or 100%" helpText="Leave empty for auto" />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Mobile Image Height" value={mobileImageHeight} onChange={setMobileImageHeight} autoComplete="off" placeholder="e.g. 100px" helpText="Leave empty for auto" />
+                                                </div>
+                                            </InlineStack>
+
+                                            <InlineStack gap="400">
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Mobile Image Container Width" value={mobileImageContainerWidth} onChange={setMobileImageContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the image column" />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <TextField label="Mobile Fields Container Width" value={mobileFieldsContainerWidth} onChange={setMobileFieldsContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the input fields column" />
+                                                </div>
+                                            </InlineStack>
+                                        </>
+                                    )}
                                 </BlockStack>
                             </FormLayout>
                         </Card>
