@@ -154,8 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.preventDefault();
                     e.stopImmediatePropagation();
                     alert('Please fill in all fields before adding to cart');
-                } else if (cs?.[0].displayStyle === 'INLINE') {
-                    aI(d);
+                } else {
+                    const currentDs = cd?.displayStyle || cs?.[0]?.displayStyle;
+                    if (currentDs === 'INLINE') aI(d);
                 }
             }, true)
         }
