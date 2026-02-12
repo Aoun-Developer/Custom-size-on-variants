@@ -249,28 +249,37 @@ export default function DesignSettings() {
                     <Layout.Section>
                         <Card>
                             <BlockStack gap="400">
-                                <Text as="h2" variant="headingMd">General Styles</Text>
-                                <FormLayout>
-                                    <FormLayout.Group>
-                                        <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
-                                        <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
-                                    </FormLayout.Group>
-                                    <FormLayout.Group>
-                                        <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
-                                        <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
-                                    </FormLayout.Group>
-                                    <Select
-                                        label="Display Style"
-                                        options={[
-                                            { label: 'Inline (Inside Product Page)', value: 'INLINE' },
-                                            { label: 'Modal Popup', value: 'MODAL' }
-                                        ]}
-                                        value={displayStyle}
-                                        onChange={setDisplayStyle}
-                                    />
-                                </FormLayout>
+                                <Text as="h2" variant="headingMd">Display Selection</Text>
+                                <Select
+                                    label="Display Style"
+                                    options={[
+                                        { label: 'Inline (Inside Product Page)', value: 'INLINE' },
+                                        { label: 'Modal Popup', value: 'MODAL' }
+                                    ]}
+                                    value={displayStyle}
+                                    onChange={setDisplayStyle}
+                                    helpText="Choose how the custom size fields should appear on your product page."
+                                />
                             </BlockStack>
                         </Card>
+
+                        <Box paddingBlockStart="400">
+                            <Card>
+                                <BlockStack gap="400">
+                                    <Text as="h2" variant="headingMd">General Styles</Text>
+                                    <FormLayout>
+                                        <FormLayout.Group>
+                                            <TextField label="Modal Background Color" value={modalBgColor} onChange={setModalBgColor} autoComplete="off" />
+                                            <TextField label="Text Color" value={textColor} onChange={setTextColor} autoComplete="off" />
+                                        </FormLayout.Group>
+                                        <FormLayout.Group>
+                                            <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
+                                            <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
+                                        </FormLayout.Group>
+                                    </FormLayout>
+                                </BlockStack>
+                            </Card>
+                        </Box>
 
                         <Box paddingBlockStart="400">
                             <Card>

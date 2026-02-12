@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('[Custom Size] Initialized for shop:', shop);
 
         let cs = null, cd = null, lc = '';
+        let cVals = {};
 
         const getF = () => document.querySelector('form[action^="/cart/add"]');
         const getB = () => {
@@ -113,7 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     cs = s;
                     const ds = cd?.displayStyle || s[0].displayStyle;
                     console.log('[Custom Size] Rendering style:', ds);
-                    ds === 'INLINE' ? rI(s) : rM(s, cd)
+                    if (ds === 'INLINE') {
+                        rI(s);
+                    } else if (!document.getElementById('cs-modal') && !localStorage.getItem('cs-saved-' + shop + '-' + v)) {
+                        rM(s, cd);
+                    } else if (ds === 'MODAL' && !document.getElementById('cs-modal')) {
+                        tB(1); // Enable if already saved or just detected but modal closed
+                    }
                 } else {
                     console.log('[Custom Size] No sets matched for handles:', v);
                     cs = null;
@@ -237,7 +244,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             d.querySelectorAll('.custom-size-input').forEach(i => {
                 sN(i);
-                i.addEventListener('input', () => vI(d));
+                i.addEventListener('input', () => {
+                    const label = i.getAttribute('name').match(/\[(.*?)\]/)?.[1];
+                    if (label) cVals[label] = i.value;
+                    vI(d);
+                });
             });
             vI(d)
         };
@@ -256,7 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const i = o.querySelectorAll('.custom-size-input');
             i.forEach(t => {
                 sN(t);
-                t.addEventListener('input', () => vI(o));
+                t.addEventListener('input', () => {
+                    const label = t.getAttribute('name').match(/\[(.*?)\]/)?.[1];
+                    if (label) cVals[label] = t.value;
+                    vI(o);
+                });
             });
             vI(o);
             o.querySelector('.custom-size-close').addEventListener('click', () => {
@@ -274,40 +289,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 aI(o);
                 cM();
                 tB(1);
-                rT(s, true)
+                // Mark as saved for this variant session to prevent auto-reopen
+                // until user clicks again
+                localStorage.setItem('cs-saved-' + shop + '-' + lc, 'true');
             })
         };
 
-        const rT = (s, v) => {
-            rmI();
-            const d = document.createElement('div');
-            d.id = 'cs-inline';
-            d.className = 'custom-size-inline';
-            const b = document.createElement('button');
-            b.className = 'custom-size-trigger-btn';
-            b.innerText = v ? 'Edit Measurements' : 'Open Custom Size Form';
-            b.style.cssText = 'padding:10px 20px;background:#000;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:bold;margin:10px 0;width:100%;';
-            b.onclick = (e) => {
-                e.preventDefault();
-                rM(s, cd)
-            };
-            d.appendChild(b);
-
-            if (ctBlock) {
-                ctBlock.appendChild(d);
-            } else {
-                const f = getF();
-                if (f) {
-                    const vS = f.querySelectorAll('variant-radios, variant-selects, .product-form__input, .product-variant-picker');
-                    if (vS.length) {
-                        vS[vS.length - 1].after(d)
-                    } else {
-                        const b = f.querySelector('.product-form__buttons,.shopify-payment-button,[name="add"]');
-                        (b?.closest('.product-form__buttons') || b || f).before(d)
-                    }
-                }
-            }
-        };
 
         const cM = () => document.getElementById('cs-modal')?.remove();
 
@@ -322,7 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     h.name = i.name;
                     h.value = i.value;
                     h.className = 'cs-hidden';
-                    f.appendChild(h)
+                    f.appendChild(h);
+                    const label = i.getAttribute('name').match(/\[(.*?)\]/)?.[1];
+                    if (label) cVals[label] = i.value;
                 }
             })
         };
@@ -338,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 iCS = iCW ? `flex:0 0 ${iCW};max-width:${iCW};` : '',
                 fCS = fCW ? `flex:0 0 ${fCW};max-width:${fCW};` : '',
                 iHtml = s.imageUrl ? `<div class="custom-size-image-container" style="${iCS}"><img src="${s.imageUrl}" alt="${s.name}" style="${iS}"/></div>` : '',
-                fHtml = `<div class="custom-size-fields-wrapper" style="${fCS}"><div class="custom-size-fields">${s.fields.map(f => `<div class="custom-size-field"><label>${f.label}${f.required ? '*' : ''}</label><input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}"/></div>`).join('')}</div></div>`;
+                fHtml = `<div class="custom-size-fields-wrapper" style="${fCS}"><div class="custom-size-fields">${s.fields.map(f => `<div class="custom-size-field"><label>${f.label}${f.required ? '*' : ''}</label><input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}" value="${cVals[f.label] || ''}"/></div>`).join('')}</div></div>`;
             const rev = p === 'bottom' || p === 'right';
             return `${bNH(s)}${bNS(s)}<div class="custom-size-set-layout custom-size-layout-${p}">${rev ? fHtml + iHtml : iHtml + fHtml}</div>`
         };
@@ -442,7 +431,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         // Catch clicks on labels/buttons that theme uses for swatches
         document.addEventListener('click', e => {
-            if (e.target.closest('.product-form__input label, .variant-picker label, label[for^="Option"], .swatch-element')) debouncedCV();
+            const variantTrigger = e.target.closest('.product-form__input label, .variant-picker label, label[for^="Option"], .swatch-element');
+            if (variantTrigger) {
+                // Fix: ignore variant selection if it happens inside the modal (e.g. clicking a label)
+                if (e.target.closest('.custom-size-modal') || e.target.closest('.custom-size-close')) return;
+
+                debouncedCV();
+                // If it's a click on a label, we might want to force modal open if it's MODAL mode
+                setTimeout(() => {
+                    const ds = cd?.displayStyle || (cs && cs[0]?.displayStyle);
+                    // Force open on click even if already saved
+                    if (ds === 'MODAL' && cs && !document.getElementById('cs-modal')) {
+                        rM(cs, cd);
+                    }
+                }, 100);
+            }
 
             // Handle our own nearest size swatches
             const swatch = e.target.closest('.custom-size-swatch');
