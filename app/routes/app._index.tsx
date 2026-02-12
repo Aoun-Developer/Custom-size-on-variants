@@ -129,12 +129,6 @@ export default function Index() {
                   <ResourceItem
                     id={item.id.toString()}
                     url={`/app/set/${item.id}`}
-                    shortcutActions={[
-                      {
-                        content: 'Delete',
-                        onAction: () => handleDelete(item.id, item.name)
-                      }
-                    ]}
                     media={
                       item.imageUrl ? (
                         <Thumbnail
@@ -158,7 +152,7 @@ export default function Index() {
                         <div style={{ fontSize: '0.8em', color: '#666' }}>ID: {item.id}</div>
                         <div>{item._count.fields} fields</div>
                       </BlockStack>
-                      <InlineStack gap="200">
+                      <InlineStack gap="200" align="center">
                         <Button
                           icon={() => (
                             <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
@@ -181,6 +175,12 @@ export default function Index() {
                           }}
                           disabled={(sets as any).indexOf(item) === sets.length - 1}
                         />
+                        <Button
+                          tone="critical"
+                          onClick={() => handleDelete(item.id, item.name)}
+                        >
+                          Delete
+                        </Button>
                       </InlineStack>
                     </InlineStack>
                   </ResourceItem>
