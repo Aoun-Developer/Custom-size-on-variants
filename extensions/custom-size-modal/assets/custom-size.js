@@ -216,10 +216,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const rI = s => {
+            const currentV = lc;
+            const inlineEl = document.getElementById('cs-inline');
+            if (inlineEl && inlineEl.dataset.v === currentV) return; // Prevent re-render if same variant
+
             rmI();
             tB(0);
             const d = document.createElement('div');
             d.id = 'cs-inline';
+            d.dataset.v = currentV;
             d.className = 'custom-size-inline';
             d.style.margin = '15px 0';
             d.innerHTML = s.map(t => `<div class="custom-size-set-block">${bH(t)}</div>`).join('<hr style="margin:15px 0;border:0;border-top:1px solid #eee;"/>');
@@ -422,12 +427,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('[Custom Size] reqNearestSize is true but no options found matching selectors');
             }
 
+            const selVal = cVals['Nearest Size'] || '';
             return `<div class="custom-size-field-swatches">
                 <label class="custom-size-nearest-size-title">Please select one option from nearest size*</label>
                 <div class="custom-size-nearest-size-subtitle"><span style="color:red;">*</span>Choose your nearest size:</div>
-                <input type="hidden" class="custom-size-nearest-size-input custom-size-input" name="properties[Nearest Size]" required />
+                <input type="hidden" class="custom-size-nearest-size-input custom-size-input" name="properties[Nearest Size]" value="${selVal}" ${selVal ? '' : 'required'} />
                 <div class="custom-size-swatches">
-                    ${o.length ? o.map(t => `<button type="button" class="custom-size-swatch" data-value="${t}">${t}</button>`).join('') : '<p style="font-size:0.8em;color:#999;margin-bottom:10px;">(No sizes detected - please check variant settings)</p>'}
+                    ${o.length ? o.map(t => `<button type="button" class="custom-size-swatch ${selVal === t ? 'active' : ''}" data-value="${t}">${t}</button>`).join('') : '<p style="font-size:0.8em;color:#999;margin-bottom:10px;">(No sizes detected - please check variant settings)</p>'}
                 </div>
             </div>`;
         };
@@ -462,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 swatches.forEach(s => s.classList.remove('active'));
                 swatch.classList.add('active');
                 input.value = swatch.dataset.value;
+                cVals['Nearest Size'] = swatch.dataset.value; // Store in global state
 
                 // Trigger validation check
                 const modal = swatch.closest('.custom-size-modal-overlay') || swatch.closest('.custom-size-inline');
