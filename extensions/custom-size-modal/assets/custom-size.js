@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const shop = ct.dataset.shop;
         console.log('[Custom Size] Initialized for shop:', shop);
 
-        let cs = null, cd = null, lc = '';
+        let cs = null, cd = null, lc = '', pendingOpen = false;
         let cVals = {};
 
         const getF = () => document.querySelector('form[action^="/cart/add"]');
@@ -70,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const v = [...new Set(rawVals)].map(h).sort().join(',');
 
-            if (v === lc) return;
+            if (v === lc && !pendingOpen) return;
+            const isInitial = !lc;
             lc = v;
 
             console.log('[Custom Size] Detected variant handles:', v);
@@ -116,10 +117,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('[Custom Size] Rendering style:', ds);
                     if (ds === 'INLINE') {
                         rI(s);
-                    } else if (!document.getElementById('cs-modal') && !localStorage.getItem('cs-saved-' + shop + '-' + v)) {
-                        rM(s, cd);
-                    } else if (ds === 'MODAL' && !document.getElementById('cs-modal')) {
-                        tB(1); // Enable if already saved or just detected but modal closed
+                    } else if (ds === 'MODAL') {
+                        const isSaved = localStorage.getItem('cs-saved-' + shop + '-' + v);
+                        if (!isSaved) {
+                            tB(0); // Only disable if not already saved for this variant
+                        } else {
+                            tB(1);
+                        }
+
+                        // Open modal if pending OR if it's the first load and we want to auto-show (optional)
+                        if (pendingOpen && !document.getElementById('cs-modal')) {
+                            rM(s, cd);
+                        }
                     }
                 } else {
                     console.log('[Custom Size] No sets matched for handles:', v);
@@ -130,10 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         tB(1);
                     }
                 }
+                pendingOpen = false;
             } catch (e) {
                 console.error('[Custom Size] Error in cV:', e);
+                pendingOpen = false;
             }
         };
+
 
         const aD = d => {
             let s = document.getElementById('cs-design') || document.createElement('style');
@@ -433,18 +445,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', e => {
             const variantTrigger = e.target.closest('.product-form__input label, .variant-picker label, label[for^="Option"], .swatch-element');
             if (variantTrigger) {
-                // Fix: ignore variant selection if it happens inside the modal (e.g. clicking a label)
+                // Fix: ignore clicks if we are interacting with the modal itself
                 if (e.target.closest('.custom-size-modal') || e.target.closest('.custom-size-close')) return;
 
+                pendingOpen = true; // Signal that we want to open the modal once data is fetched
                 debouncedCV();
-                // If it's a click on a label, we might want to force modal open if it's MODAL mode
-                setTimeout(() => {
-                    const ds = cd?.displayStyle || (cs && cs[0]?.displayStyle);
-                    // Force open on click even if already saved
-                    if (ds === 'MODAL' && cs && !document.getElementById('cs-modal')) {
-                        rM(cs, cd);
-                    }
-                }, 100);
             }
 
             // Handle our own nearest size swatches
