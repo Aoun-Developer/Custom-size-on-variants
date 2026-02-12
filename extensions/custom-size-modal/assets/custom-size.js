@@ -104,9 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         style.innerHTML = `
             ${modalStyles.length ? `.custom-size-modal { ${modalStyles.join(' ')} }` : ''}
+            ${modalStyles.length ? `.custom-size-inline { ${modalStyles.join(' ')} }` : ''}
             ${inputStyles.length ? `.custom-size-input { ${inputStyles.join(' ')} }` : ''}
             ${placeholderStyles.length ? `.custom-size-input::placeholder { ${placeholderStyles.join(' ')} }` : ''}
-            ${titleStyles.length ? `.custom-size-header h2, .custom-size-set-section h3 { ${titleStyles.join(' ')} }` : ''}
+            ${titleStyles.length ? `.custom-size-header h2, .custom-size-set-section h3, .custom-size-set-block h3 { ${titleStyles.join(' ')} }` : ''}
             ${noteStyles.length ? `.custom-size-note { ${noteStyles.join(' ')} }` : ''}
             ${design.customCss || ''}
         `;
@@ -180,30 +181,24 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.id = 'custom-size-modal-overlay';
         overlay.className = 'custom-size-modal-overlay';
 
-        const firstSet = sets[0];
+        // Check if any set has a horizontal layout (set-specific or global default)
+        const isGlobalHorizontal = currentDesign?.imageLayout === 'horizontal';
+        const hasHorizontal = sets.some(s => s.imagePosition === 'left' || s.imagePosition === 'right') || isGlobalHorizontal;
+        const modalClass = hasHorizontal ? 'custom-size-modal custom-size-modal-wide' : 'custom-size-modal';
+
         overlay.innerHTML = `
-            <div class="custom-size-modal">
+            <div class="${modalClass}">
                 <div class="custom-size-header">
-                    ${firstSet.imageUrl ? `<img src="${firstSet.imageUrl}" alt="${firstSet.name}" />` : ''}
                     <h2>Custom Size</h2>
                     <button class="custom-size-close">&times;</button>
                 </div>
                 <div class="custom-size-body">
                     ${sets.map(set => `
                         <div class="custom-size-set-section">
-                            <h3 style="margin-bottom: 10px; font-size: 1.1em;">${set.name}</h3>
-                            ${buildNoteHtml(set)}
-                            <div class="custom-size-fields">
-                                ${buildNearestSizeHtml(set)}
-                                ${set.fields.map(f => `
-                                    <div class="custom-size-field">
-                                        <label>${f.label}${f.required ? '*' : ''}</label>
-                                        <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="IN INCHES" />
-                                    </div>
-                                `).join('')}
-                            </div>
+                            <h3 style="margin-bottom: 15px; font-size: 1.1em;">${set.name}</h3>
+                            ${buildSetContent(set)}
                         </div>
-                    `).join('<hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;" />')}
+                    `).join('<hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;" />')}
                 </div>
                 <div class="custom-size-footer"><button class="custom-size-save-btn">Save Measurements</button></div>
             </div>`;
@@ -247,17 +242,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const buildHtml = (set) => `
-        ${buildNoteHtml(set)}
-        ${set.imageUrl ? `<img src="${set.imageUrl}" alt="${set.name}" class="custom-size-inline-image" />` : ''}
-        <div class="custom-size-fields">
-            ${buildNearestSizeHtml(set)}
-            ${set.fields.map(f => `
-                <div class="custom-size-field">
-                    <label>${f.label}${f.required ? '*' : ''}</label>
-                    <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}" />
+    const buildSetContent = (set) => {
+        const imgStyle = `width: ${set.imageWidth || 'auto'}; height: ${set.imageHeight || 'auto'}; object-fit: contain; max-width: 100%;`;
+        const imgContainerStyle = set.imageContainerWidth ? `flex: 0 0 ${set.imageContainerWidth}; max-width: ${set.imageContainerWidth};` : '';
+        const fieldsContainerStyle = set.fieldsContainerWidth ? `flex: 0 0 ${set.fieldsContainerWidth}; max-width: ${set.fieldsContainerWidth};` : '';
+        const imgHtml = set.imageUrl ? `
+            <div class="custom-size-image-container" style="${imgContainerStyle}">
+                <img src="${set.imageUrl}" alt="${set.name}" style="${imgStyle}" />
+            </div>` : '';
+
+        const fieldsHtml = `
+            <div class="custom-size-fields-wrapper" style="${fieldsContainerStyle}">
+                <div class="custom-size-fields">
+                    ${buildNearestSizeHtml(set)}
+                    ${set.fields.map(f => `
+                        <div class="custom-size-field">
+                            <label>${f.label}${f.required ? '*' : ''}</label>
+                            <input type="${f.type}" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}" />
+                        </div>
+                    `).join('')}
                 </div>
-            `).join('')}
+            </div>`;
+
+        // Use set-specific position or fallback to global design layout
+        let position = set.imagePosition || 'top';
+        if (position === 'top' && currentDesign?.imageLayout === 'horizontal') {
+            position = 'left';
+        }
+
+        const layoutClass = `custom-size-layout-${position}`;
+        const isReverse = position === 'bottom' || position === 'right';
+
+        return `
+            ${buildNoteHtml(set)}
+            <div class="custom-size-set-layout ${layoutClass}">
+                ${isReverse ? fieldsHtml + imgHtml : imgHtml + fieldsHtml}
+            </div>`;
+    };
+
+    const buildHtml = (set) => `
+        <div class="custom-size-set-block">
+            <h3 style="margin-bottom: 15px; font-size: 1.1em;">${set.name}</h3>
+            ${buildSetContent(set)}
         </div>`;
 
     const buildNoteHtml = (set) => (set.noteTitle || set.noteContent) ? `

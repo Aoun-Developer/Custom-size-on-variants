@@ -59,20 +59,17 @@ export default function DesignSettings() {
 
     const handleSave = () => {
         const formData = new FormData();
-
-        // Only append non-empty values
-        if (imageLayout) formData.append("imageLayout", imageLayout);
-        if (modalBgColor) formData.append("modalBgColor", modalBgColor);
-        if (borderWidth) formData.append("borderWidth", borderWidth);
-        if (borderStyle) formData.append("borderStyle", borderStyle);
-        if (borderColor) formData.append("borderColor", borderColor);
-        if (textColor) formData.append("textColor", textColor);
-        if (placeholderColor) formData.append("placeholderColor", placeholderColor);
-        if (titleColor) formData.append("titleColor", titleColor);
-        if (noteColor) formData.append("noteColor", noteColor);
-        if (noteBgColor) formData.append("noteBgColor", noteBgColor);
-        if (customCss) formData.append("customCss", customCss);
-
+        formData.append("imageLayout", imageLayout);
+        formData.append("modalBgColor", modalBgColor);
+        formData.append("borderWidth", borderWidth);
+        formData.append("borderStyle", borderStyle);
+        formData.append("borderColor", borderColor);
+        formData.append("textColor", textColor);
+        formData.append("placeholderColor", placeholderColor);
+        formData.append("titleColor", titleColor);
+        formData.append("noteColor", noteColor);
+        formData.append("noteBgColor", noteBgColor);
+        formData.append("customCss", customCss);
         submit(formData, { method: "post" });
     };
 

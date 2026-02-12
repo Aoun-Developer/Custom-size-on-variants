@@ -59,7 +59,7 @@
   border: 1px solid #ffc107;
   border-radius: 4px;
   padding: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .custom-size-note h3 {
@@ -140,13 +140,69 @@
   background: #333;
 }
 
-/* Inline Display Mode */
+/* Set Layouts */
+.custom-size-modal-wide {
+  max-width: 800px !important;
+}
+
+.custom-size-set-layout {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.custom-size-layout-top {
+  flex-direction: column;
+}
+
+.custom-size-layout-bottom {
+  flex-direction: column;
+}
+
+.custom-size-layout-left {
+  flex-direction: row;
+}
+
+.custom-size-layout-right {
+  flex-direction: row;
+}
+
+.custom-size-image-container {
+  flex: 0 0 auto;
+  max-width: 50%;
+  display: flex;
+}
+
+.custom-size-image-container img {
+  display: block;
+}
+
+.custom-size-fields-wrapper {
+  flex: 1;
+  min-width: 0;
+  /* Prevents flex children from overflowing */
+}
+
+@media (max-width: 600px) {
+  .custom-size-set-layout {
+    flex-direction: column !important;
+  }
+
+  .custom-size-image-container {
+    flex: 0 0 auto;
+  }
+}
+
 .custom-size-inline {
   border: 2px solid #000;
   border-radius: 8px;
   padding: 20px;
   margin: 20px 0;
   background: #f9f9f9;
+}
+
+.custom-size-set-block {
+  margin-bottom: 20px;
 }
 
 .custom-size-inline-image {

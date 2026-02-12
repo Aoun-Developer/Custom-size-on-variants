@@ -39,7 +39,12 @@ model CustomSizeSet {
   name           String
   triggerVariant String
   imageUrl       String?
-  displayStyle   String   @default("MODAL") // "MODAL" or "INLINE"
+  imagePosition         String   @default("top") // "top", "left", "right", "bottom"
+  imageWidth            String?  @default("auto")
+  imageHeight           String?  @default("auto")
+  imageContainerWidth   String?  @default("auto")
+  fieldsContainerWidth  String?  @default("auto")
+  displayStyle          String   @default("MODAL") // "MODAL" or "INLINE"
   noteTitle      String?
   noteContent    String?
   reqNearestSize Boolean  @default(false)

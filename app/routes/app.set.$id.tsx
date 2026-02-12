@@ -60,6 +60,11 @@ export const action = async ({ request, params }: any) => {
     const noteTitle = formData.get("noteTitle") as string;
     const noteContent = formData.get("noteContent") as string;
     const reqNearestSize = formData.get("reqNearestSize") === "true";
+    const imagePosition = formData.get("imagePosition") as string || "top";
+    const imageWidth = formData.get("imageWidth") as string || "auto";
+    const imageHeight = formData.get("imageHeight") as string || "auto";
+    const imageContainerWidth = formData.get("imageContainerWidth") as string || "auto";
+    const fieldsContainerWidth = formData.get("fieldsContainerWidth") as string || "auto";
     const fields = JSON.parse(formData.get("fields") as string);
 
     // Validation
@@ -93,6 +98,11 @@ export const action = async ({ request, params }: any) => {
                 noteTitle,
                 noteContent,
                 reqNearestSize,
+                imagePosition,
+                imageWidth,
+                imageHeight,
+                imageContainerWidth,
+                fieldsContainerWidth,
                 fields: {
                     create: fields.map((f: any, index: number) => ({
                         label: f.label,
@@ -102,7 +112,7 @@ export const action = async ({ request, params }: any) => {
                         order: index
                     }))
                 }
-            }
+            } as any
         });
         return redirect(`/app`);
     } else {
@@ -120,6 +130,11 @@ export const action = async ({ request, params }: any) => {
                     noteTitle,
                     noteContent,
                     reqNearestSize,
+                    imagePosition,
+                    imageWidth,
+                    imageHeight,
+                    imageContainerWidth,
+                    fieldsContainerWidth,
                     fields: {
                         create: fields.map((f: any, index: number) => ({
                             label: f.label,
@@ -129,7 +144,7 @@ export const action = async ({ request, params }: any) => {
                             order: index
                         }))
                     }
-                }
+                } as any
             })
         ]);
         return redirect(`/app`);
@@ -148,8 +163,13 @@ export default function SetEditor() {
     const [displayStyle, setDisplayStyle] = useState(set?.displayStyle || "MODAL");
     const [noteTitle, setNoteTitle] = useState(set?.noteTitle || "");
     const [noteContent, setNoteContent] = useState(set?.noteContent || "");
-    const [reqNearestSize, setReqNearestSize] = useState(set?.reqNearestSize || false);
-    const [fields, setFields] = useState<any[]>(set?.fields || []);
+    const [reqNearestSize, setReqNearestSize] = useState((set as any)?.reqNearestSize || false);
+    const [imagePosition, setImagePosition] = useState((set as any)?.imagePosition || "top");
+    const [imageWidth, setImageWidth] = useState((set as any)?.imageWidth || "auto");
+    const [imageHeight, setImageHeight] = useState((set as any)?.imageHeight || "auto");
+    const [imageContainerWidth, setImageContainerWidth] = useState((set as any)?.imageContainerWidth || "auto");
+    const [fieldsContainerWidth, setFieldsContainerWidth] = useState((set as any)?.fieldsContainerWidth || "auto");
+    const [fields, setFields] = useState<any[]>((set as any)?.fields || []);
 
     const [newFieldLabel, setNewFieldLabel] = useState("");
     const isSaving = nav.state === "submitting";
@@ -166,8 +186,13 @@ export default function SetEditor() {
             displayStyle: set?.displayStyle || "MODAL",
             noteTitle: set?.noteTitle || "",
             noteContent: set?.noteContent || "",
-            reqNearestSize: set?.reqNearestSize || false,
-            fields: set?.fields || []
+            reqNearestSize: (set as any)?.reqNearestSize || false,
+            imagePosition: (set as any)?.imagePosition || "top",
+            imageWidth: (set as any)?.imageWidth || "auto",
+            imageHeight: (set as any)?.imageHeight || "auto",
+            imageContainerWidth: (set as any)?.imageContainerWidth || "auto",
+            fieldsContainerWidth: (set as any)?.fieldsContainerWidth || "auto",
+            fields: (set as any)?.fields || []
         };
 
         const currentState = {
@@ -178,13 +203,18 @@ export default function SetEditor() {
             noteTitle,
             noteContent,
             reqNearestSize,
+            imagePosition,
+            imageWidth,
+            imageHeight,
+            imageContainerWidth,
+            fieldsContainerWidth,
             fields
         };
 
         // Simple deep comparison (sufficient for this data structure)
         const hasChanged = JSON.stringify(initialState) !== JSON.stringify(currentState);
         setIsDirty(hasChanged);
-    }, [name, triggerVariant, imageUrl, displayStyle, noteTitle, noteContent, reqNearestSize, fields, set]);
+    }, [name, triggerVariant, imageUrl, displayStyle, noteTitle, noteContent, reqNearestSize, imagePosition, imageWidth, imageHeight, imageContainerWidth, fieldsContainerWidth, fields, set]);
 
 
     const handleAddField = () => {
@@ -206,6 +236,11 @@ export default function SetEditor() {
         formData.append("noteTitle", noteTitle);
         formData.append("noteContent", noteContent);
         formData.append("reqNearestSize", String(reqNearestSize));
+        formData.append("imagePosition", imagePosition);
+        formData.append("imageWidth", imageWidth);
+        formData.append("imageHeight", imageHeight);
+        formData.append("imageContainerWidth", imageContainerWidth);
+        formData.append("fieldsContainerWidth", fieldsContainerWidth);
         formData.append("fields", JSON.stringify(fields));
         submit(formData, { method: "post" });
     };
@@ -310,6 +345,40 @@ export default function SetEditor() {
                                         }}
                                     />
                                     <TextField label="Image URL (Manual)" value={imageUrl} onChange={setImageUrl} autoComplete="off" helpText="Or paste a URL directly" />
+
+                                    <InlineStack gap="400">
+                                        <div style={{ flex: 1 }}>
+                                            <div className="Polaris-Labelled__LabelWrapper">
+                                                <div className="Polaris-Label"><label id="imagePositionLabel" htmlFor="imagePosition" className="Polaris-Label__Text">Image Position</label></div>
+                                            </div>
+                                            <select
+                                                id="imagePosition"
+                                                value={imagePosition}
+                                                onChange={(e) => setImagePosition(e.target.value)}
+                                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                            >
+                                                <option value="top">Top</option>
+                                                <option value="left">Left</option>
+                                                <option value="right">Right</option>
+                                                <option value="bottom">Bottom</option>
+                                            </select>
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <TextField label="Image Width" value={imageWidth} onChange={setImageWidth} autoComplete="off" placeholder="e.g. 100px or 100%" helpText="Leave empty for auto" />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <TextField label="Image Height" value={imageHeight} onChange={setImageHeight} autoComplete="off" placeholder="e.g. 100px" helpText="Leave empty for auto" />
+                                        </div>
+                                    </InlineStack>
+
+                                    <InlineStack gap="400">
+                                        <div style={{ flex: 1 }}>
+                                            <TextField label="Image Container Width" value={imageContainerWidth} onChange={setImageContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the image column" />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <TextField label="Fields Container Width" value={fieldsContainerWidth} onChange={setFieldsContainerWidth} autoComplete="off" placeholder="e.g. 50%" helpText="Width of the input fields column" />
+                                        </div>
+                                    </InlineStack>
                                 </BlockStack>
                             </FormLayout>
                         </Card>
