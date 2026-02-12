@@ -1,0 +1,19 @@
+{% schema %}
+{
+  "name": "Custom Size Block",
+  "target": "section",
+  "templates": ["product"],
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Add this block to the product information area to manually position the custom size form."
+    }
+  ]
+}
+{% endschema %}
+
+<div
+  id="custom-size-block-container"
+  class="custom-size-block"
+  data-shop="{{ shop.permanent_domain }}"
+></div>

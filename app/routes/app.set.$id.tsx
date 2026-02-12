@@ -57,8 +57,6 @@ export const action = async ({ request, params }: any) => {
     const name = formData.get("name");
     const triggerVariant = formData.get("triggerVariant");
     const imageUrl = formData.get("imageUrl");
-    const displayStyle = formData.get("displayStyle") as string || "MODAL";
-    const noteTitle = formData.get("noteTitle") as string;
     const noteContent = formData.get("noteContent") as string;
     const reqNearestSize = formData.get("reqNearestSize") === "true";
     const imagePosition = formData.get("imagePosition") as string || "top";
@@ -102,8 +100,6 @@ export const action = async ({ request, params }: any) => {
                 name,
                 triggerVariant,
                 imageUrl,
-                displayStyle,
-                noteTitle,
                 noteContent,
                 reqNearestSize,
                 imagePosition,
@@ -139,8 +135,6 @@ export const action = async ({ request, params }: any) => {
                     name,
                     triggerVariant,
                     imageUrl,
-                    displayStyle,
-                    noteTitle,
                     noteContent,
                     reqNearestSize,
                     imagePosition,
@@ -178,8 +172,6 @@ export default function SetEditor() {
     const [name, setName] = useState(set?.name || "");
     const [triggerVariant, setTriggerVariant] = useState(set?.triggerVariant || "Custom Size");
     const [imageUrl, setImageUrl] = useState(set?.imageUrl || "");
-    const [displayStyle, setDisplayStyle] = useState(set?.displayStyle || "MODAL");
-    const [noteTitle, setNoteTitle] = useState(set?.noteTitle || "");
     const [noteContent, setNoteContent] = useState(set?.noteContent || "");
     const [reqNearestSize, setReqNearestSize] = useState((set as any)?.reqNearestSize || false);
     const [imagePosition, setImagePosition] = useState((set as any)?.imagePosition || "top");
@@ -217,8 +209,6 @@ export default function SetEditor() {
             name: set?.name || "",
             triggerVariant: set?.triggerVariant || "Custom Size",
             imageUrl: set?.imageUrl || "",
-            displayStyle: set?.displayStyle || "MODAL",
-            noteTitle: set?.noteTitle || "",
             noteContent: set?.noteContent || "",
             reqNearestSize: !!(set as any)?.reqNearestSize,
             imagePosition: (set as any)?.imagePosition || "top",
@@ -238,8 +228,6 @@ export default function SetEditor() {
             name,
             triggerVariant,
             imageUrl,
-            displayStyle,
-            noteTitle,
             noteContent,
             reqNearestSize: !!reqNearestSize,
             imagePosition,
@@ -258,7 +246,7 @@ export default function SetEditor() {
         // Simple deep comparison (sufficient for this data structure)
         const hasChanged = JSON.stringify(initialState) !== JSON.stringify(currentState);
         setIsDirty(hasChanged);
-    }, [name, triggerVariant, imageUrl, displayStyle, noteTitle, noteContent, reqNearestSize, imagePosition, imageWidth, imageHeight, imageContainerWidth, fieldsContainerWidth, mobileImagePosition, mobileImageWidth, mobileImageHeight, mobileImageContainerWidth, mobileFieldsContainerWidth, fields, set]);
+    }, [name, triggerVariant, imageUrl, noteContent, reqNearestSize, imagePosition, imageWidth, imageHeight, imageContainerWidth, fieldsContainerWidth, mobileImagePosition, mobileImageWidth, mobileImageHeight, mobileImageContainerWidth, mobileFieldsContainerWidth, fields, set]);
 
 
     const handleAddField = () => {
@@ -276,8 +264,6 @@ export default function SetEditor() {
         formData.append("name", name);
         formData.append("triggerVariant", triggerVariant);
         formData.append("imageUrl", imageUrl);
-        formData.append("displayStyle", displayStyle);
-        formData.append("noteTitle", noteTitle);
         formData.append("noteContent", noteContent);
         formData.append("reqNearestSize", String(reqNearestSize));
         formData.append("imagePosition", imagePosition);
@@ -486,35 +472,18 @@ export default function SetEditor() {
                                 <BlockStack gap="400">
                                     <Text as="h2" variant="headingMd">Display & Content</Text>
                                     <FormLayout>
-                                        <div style={{ display: 'flex', gap: '20px' }}>
-                                            <div style={{ flex: 1 }}>
-                                                <div className="Polaris-Labelled__LabelWrapper">
-                                                    <div className="Polaris-Label"><label id="displayStyleLabel" htmlFor="displayStyle" className="Polaris-Label__Text">Display Style</label></div>
-                                                </div>
-                                                <select
-                                                    id="displayStyle"
-                                                    value={displayStyle}
-                                                    onChange={(e) => setDisplayStyle(e.target.value)}
-                                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                                                >
-                                                    <option value="MODAL">Modal Popup</option>
-                                                    <option value="INLINE">Inline (Below Option)</option>
-                                                </select>
-                                            </div>
-                                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', paddingTop: '24px' }}>
-                                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={reqNearestSize}
-                                                        onChange={(e) => setReqNearestSize(e.target.checked)}
-                                                    />
-                                                    <span className="Polaris-Text--root Polaris-Text--bodyMd">Require "Nearest Size" Selection</span>
-                                                </label>
-                                            </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', paddingBottom: '16px' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={reqNearestSize}
+                                                    onChange={(e) => setReqNearestSize(e.target.checked)}
+                                                />
+                                                <span className="Polaris-Text--root Polaris-Text--bodyMd">Require "Nearest Size" Selection</span>
+                                            </label>
                                         </div>
 
-                                        <TextField label="Note Title" value={noteTitle} onChange={setNoteTitle} autoComplete="off" placeholder="e.g. NOTE" />
-                                        <TextField label="Note Content" value={noteContent} onChange={setNoteContent} autoComplete="off" multiline={4} placeholder="Guidelines for the customer..." />
+                                        <TextField label="Guidelines" value={noteContent} onChange={setNoteContent} autoComplete="off" multiline={4} placeholder="Guidelines for the customer..." />
                                     </FormLayout>
                                 </BlockStack>
                             </Card>

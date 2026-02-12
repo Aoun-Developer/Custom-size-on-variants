@@ -4,7 +4,7 @@ import { useLoaderData, useSubmit, useNavigation, Form } from "@remix-run/react"
 import {
     Page, Layout, Card, FormLayout, TextField, Button, BlockStack, Text, Box, Select
 } from "@shopify/polaris";
-import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge, SaveBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
@@ -53,6 +53,7 @@ export default function DesignSettings() {
     const [noteColor, setNoteColor] = useState(design?.noteColor || "#666666");
     const [noteBgColor, setNoteBgColor] = useState(design?.noteBgColor || "#f9f9f9");
     const [customCss, setCustomCss] = useState(design?.customCss || "");
+    const [displayStyle, setDisplayStyle] = useState(design?.displayStyle || "INLINE");
 
     // Font Sizes - Desktop
     const [noteTitleFontSizeDesktop, setNoteTitleFontSizeDesktop] = useState(design?.noteTitleFontSizeDesktop || "18px");
@@ -89,6 +90,7 @@ export default function DesignSettings() {
             noteContentFontSizeMobile: design?.noteContentFontSizeMobile || "13px",
             fieldTitleFontSizeMobile: design?.fieldTitleFontSizeMobile || "13px",
             fieldPlaceholderFontSizeMobile: design?.fieldPlaceholderFontSizeMobile || "12px",
+            displayStyle: design?.displayStyle || "INLINE",
         };
 
         const currentState = {
@@ -110,13 +112,14 @@ export default function DesignSettings() {
             noteContentFontSizeMobile,
             fieldTitleFontSizeMobile,
             fieldPlaceholderFontSizeMobile,
+            displayStyle,
         };
 
         setIsDirty(JSON.stringify(initialState) !== JSON.stringify(currentState));
     }, [
         modalBgColor, borderWidth, borderStyle, borderColor,
         textColor, placeholderColor, titleColor, noteColor, noteBgColor,
-        customCss, design,
+        customCss, design, displayStyle,
         noteTitleFontSizeDesktop, noteContentFontSizeDesktop,
         fieldTitleFontSizeDesktop, fieldPlaceholderFontSizeDesktop,
         noteTitleFontSizeMobile, noteContentFontSizeMobile,
@@ -143,6 +146,7 @@ export default function DesignSettings() {
         formData.append("noteContentFontSizeMobile", noteContentFontSizeMobile);
         formData.append("fieldTitleFontSizeMobile", fieldTitleFontSizeMobile);
         formData.append("fieldPlaceholderFontSizeMobile", fieldPlaceholderFontSizeMobile);
+        formData.append("displayStyle", displayStyle);
         submit(formData, { method: "post" });
     };
 
@@ -152,11 +156,38 @@ export default function DesignSettings() {
         }
     }, [nav.state, nav.formMethod, shopify]);
 
+    const handleDiscard = () => {
+        // Reset states to original design values
+        setModalBgColor(design?.modalBgColor || "#ffffff");
+        setBorderWidth(design?.borderWidth?.toString() || "1");
+        setBorderStyle(design?.borderStyle || "solid");
+        setBorderColor(design?.borderColor || "#dddddd");
+        setTextColor(design?.textColor || "#333333");
+        setPlaceholderColor(design?.placeholderColor || "#999999");
+        setTitleColor(design?.titleColor || "#000000");
+        setNoteColor(design?.noteColor || "#666666");
+        setNoteBgColor(design?.noteBgColor || "#f9f9f9");
+        setCustomCss(design?.customCss || "");
+        setDisplayStyle(design?.displayStyle || "INLINE");
+        setNoteTitleFontSizeDesktop(design?.noteTitleFontSizeDesktop || "18px");
+        setNoteContentFontSizeDesktop(design?.noteContentFontSizeDesktop || "14px");
+        setFieldTitleFontSizeDesktop(design?.fieldTitleFontSizeDesktop || "14px");
+        setFieldPlaceholderFontSizeDesktop(design?.fieldPlaceholderFontSizeDesktop || "13px");
+        setNoteTitleFontSizeMobile(design?.noteTitleFontSizeMobile || "16px");
+        setNoteContentFontSizeMobile(design?.noteContentFontSizeMobile || "13px");
+        setFieldTitleFontSizeMobile(design?.fieldTitleFontSizeMobile || "13px");
+        setFieldPlaceholderFontSizeMobile(design?.fieldPlaceholderFontSizeMobile || "12px");
+    };
+
     return (
         <Page>
             <TitleBar title="Design Settings">
                 <button variant="primary" onClick={handleSave} disabled={isSaving || !isDirty}>Save</button>
             </TitleBar>
+            <SaveBar open={isDirty}>
+                <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined} disabled={isSaving}>Save</button>
+                <button onClick={handleDiscard}>Discard</button>
+            </SaveBar>
             <BlockStack gap="500">
                 <Layout>
                     <Layout.Section>
@@ -172,6 +203,15 @@ export default function DesignSettings() {
                                         <TextField label="Placeholder Color" value={placeholderColor} onChange={setPlaceholderColor} autoComplete="off" />
                                         <TextField label="Title Color" value={titleColor} onChange={setTitleColor} autoComplete="off" />
                                     </FormLayout.Group>
+                                    <Select
+                                        label="Display Style"
+                                        options={[
+                                            { label: 'Inline (Inside Product Page)', value: 'INLINE' },
+                                            { label: 'Modal Popup', value: 'MODAL' }
+                                        ]}
+                                        value={displayStyle}
+                                        onChange={setDisplayStyle}
+                                    />
                                 </FormLayout>
                             </BlockStack>
                         </Card>
