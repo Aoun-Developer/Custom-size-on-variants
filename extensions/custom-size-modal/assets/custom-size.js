@@ -376,7 +376,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 i = [...document.querySelectorAll(selectors.join(','))];
             }
 
+            // Exclude list for non-size related variants
+            const excludeWords = ['stiched', 'unstiched', 'type', 'custom', 'choose', 'select', 'default', 'last', 'note', 'chart'];
+
             let o = i.map(e => {
+                const name = e.getAttribute('name')?.toLowerCase() || '';
+                const id = e.id?.toLowerCase() || '';
+                const parent = e.closest('.product-form__input, .variant-picker, fieldset');
+                const parentText = parent?.querySelector('label, .form__label, legend')?.innerText?.toLowerCase() || '';
+
+                // If this input belongs to a non-size group, return null
+                if (parentText && (parentText.includes('type') || parentText.includes('color') || parentText.includes('style'))) {
+                    if (!parentText.includes('size')) return null;
+                }
+
                 let v = e.value || e.dataset.value || (e.tagName === 'OPTION' ? e.text : '');
                 if (!v && e.tagName === 'INPUT' && e.id) {
                     const label = document.querySelector(`label[for="${e.id}"]`);
@@ -386,12 +399,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }).filter(v => {
                 if (!v) return false;
                 const low = v.toLowerCase();
-                return !low.includes('custom') && !low.includes('choose') && !low.includes('select') && !low.includes('default');
+                // Strict check: must not be in exclude list
+                return !excludeWords.some(word => low.includes(word));
             });
 
             o = [...new Set(o)]; // Deduplicate
 
-            console.log('[Custom Size] reqNearestSize found options:', o);
+            console.log('[Custom Size] reqNearestSize found options (filtered):', o);
 
             if (!o.length) {
                 console.log('[Custom Size] reqNearestSize is true but no options found matching selectors');
