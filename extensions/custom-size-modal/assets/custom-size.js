@@ -145,11 +145,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 d.noteContentFontSizeDesktop && `.custom-size-note p{font-size:${d.noteContentFontSizeDesktop}!important;}`,
                 d.fieldTitleFontSizeDesktop && `.custom-size-field label{font-size:${d.fieldTitleFontSizeDesktop}!important;}`,
                 d.fieldPlaceholderFontSizeDesktop && `.custom-size-input{font-size:${d.fieldPlaceholderFontSizeDesktop}!important;}`,
+                d.nsTitleFontSizeDesktop && `.custom-size-nearest-size-title{font-size:${d.nsTitleFontSizeDesktop}!important;}`,
+                d.nsSubtitleFontSizeDesktop && `.custom-size-nearest-size-subtitle{font-size:${d.nsSubtitleFontSizeDesktop}!important;}`,
+                d.nsVariantFontSizeDesktop && `.custom-size-swatch{font-size:${d.nsVariantFontSizeDesktop}!important;}`,
+                d.nsVariantPaddingDesktop && `.custom-size-swatch{padding:${d.nsVariantPaddingDesktop}!important;}`,
+                d.nsVariantBorderRadiusDesktop && `.custom-size-swatch{border-radius:${d.nsVariantBorderRadiusDesktop}!important;}`,
                 `@media screen and (max-width:600px){`,
                 d.noteTitleFontSizeMobile && `.custom-size-note h3{font-size:${d.noteTitleFontSizeMobile}!important;}`,
                 d.noteContentFontSizeMobile && `.custom-size-note p{font-size:${d.noteContentFontSizeMobile}!important;}`,
                 d.fieldTitleFontSizeMobile && `.custom-size-field label{font-size:${d.fieldTitleFontSizeMobile}!important;}`,
                 d.fieldPlaceholderFontSizeMobile && `.custom-size-input{font-size:${d.fieldPlaceholderFontSizeMobile}!important;}`,
+                d.nsTitleFontSizeMobile && `.custom-size-nearest-size-title{font-size:${d.nsTitleFontSizeMobile}!important;}`,
+                d.nsSubtitleFontSizeMobile && `.custom-size-nearest-size-subtitle{font-size:${d.nsSubtitleFontSizeMobile}!important;}`,
+                d.nsVariantFontSizeMobile && `.custom-size-swatch{font-size:${d.nsVariantFontSizeMobile}!important;}`,
+                d.nsVariantPaddingMobile && `.custom-size-swatch{padding:${d.nsVariantPaddingMobile}!important;}`,
+                d.nsVariantBorderRadiusMobile && `.custom-size-swatch{border-radius:${d.nsVariantBorderRadiusMobile}!important;}`,
                 `}`,
                 d.customCss
             ].filter(Boolean).join('');
@@ -328,9 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 iCS = iCW ? `flex:0 0 ${iCW};max-width:${iCW};` : '',
                 fCS = fCW ? `flex:0 0 ${fCW};max-width:${fCW};` : '',
                 iHtml = s.imageUrl ? `<div class="custom-size-image-container" style="${iCS}"><img src="${s.imageUrl}" alt="${s.name}" style="${iS}"/></div>` : '',
-                fHtml = `<div class="custom-size-fields-wrapper" style="${fCS}"><div class="custom-size-fields">${bNS(s)}${s.fields.map(f => `<div class="custom-size-field"><label>${f.label}${f.required ? '*' : ''}</label><input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}"/></div>`).join('')}</div></div>`;
+                fHtml = `<div class="custom-size-fields-wrapper" style="${fCS}"><div class="custom-size-fields">${s.fields.map(f => `<div class="custom-size-field"><label>${f.label}${f.required ? '*' : ''}</label><input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="properties[${f.label}]" ${f.required ? 'required' : ''} class="custom-size-input" placeholder="${f.placeholder || 'IN INCHES'}"/></div>`).join('')}</div></div>`;
             const rev = p === 'bottom' || p === 'right';
-            return `${bNH(s)}<div class="custom-size-set-layout custom-size-layout-${p}">${rev ? fHtml + iHtml : iHtml + fHtml}</div>`
+            return `${bNH(s)}${bNS(s)}<div class="custom-size-set-layout custom-size-layout-${p}">${rev ? fHtml + iHtml : iHtml + fHtml}</div>`
         };
 
         const bH = s => `<div class="custom-size-set-block"><h3 style="margin-bottom:15px;font-size:1.1em;">${s.name}</h3>${bSC(s)}</div>`;

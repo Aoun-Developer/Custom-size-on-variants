@@ -67,6 +67,20 @@ export default function DesignSettings() {
     const [fieldTitleFontSizeMobile, setFieldTitleFontSizeMobile] = useState(design?.fieldTitleFontSizeMobile || "13px");
     const [fieldPlaceholderFontSizeMobile, setFieldPlaceholderFontSizeMobile] = useState(design?.fieldPlaceholderFontSizeMobile || "12px");
 
+    // Nearest Size Styling - Desktop
+    const [nsTitleFontSizeDesktop, setNsTitleFontSizeDesktop] = useState(design?.nsTitleFontSizeDesktop || "1.1rem");
+    const [nsSubtitleFontSizeDesktop, setNsSubtitleFontSizeDesktop] = useState(design?.nsSubtitleFontSizeDesktop || "0.95rem");
+    const [nsVariantFontSizeDesktop, setNsVariantFontSizeDesktop] = useState(design?.nsVariantFontSizeDesktop || "14px");
+    const [nsVariantPaddingDesktop, setNsVariantPaddingDesktop] = useState(design?.nsVariantPaddingDesktop || "8px 12px");
+    const [nsVariantBorderRadiusDesktop, setNsVariantBorderRadiusDesktop] = useState(design?.nsVariantBorderRadiusDesktop || "4px");
+
+    // Nearest Size Styling - Mobile
+    const [nsTitleFontSizeMobile, setNsTitleFontSizeMobile] = useState(design?.nsTitleFontSizeMobile || "1rem");
+    const [nsSubtitleFontSizeMobile, setNsSubtitleFontSizeMobile] = useState(design?.nsSubtitleFontSizeMobile || "0.9rem");
+    const [nsVariantFontSizeMobile, setNsVariantFontSizeMobile] = useState(design?.nsVariantFontSizeMobile || "13px");
+    const [nsVariantPaddingMobile, setNsVariantPaddingMobile] = useState(design?.nsVariantPaddingMobile || "6px 10px");
+    const [nsVariantBorderRadiusMobile, setNsVariantBorderRadiusMobile] = useState(design?.nsVariantBorderRadiusMobile || "4px");
+
     const isSaving = nav.state === "submitting";
     const [isDirty, setIsDirty] = useState(false);
 
@@ -90,6 +104,16 @@ export default function DesignSettings() {
             noteContentFontSizeMobile: design?.noteContentFontSizeMobile || "13px",
             fieldTitleFontSizeMobile: design?.fieldTitleFontSizeMobile || "13px",
             fieldPlaceholderFontSizeMobile: design?.fieldPlaceholderFontSizeMobile || "12px",
+            nsTitleFontSizeDesktop: design?.nsTitleFontSizeDesktop || "1.1rem",
+            nsSubtitleFontSizeDesktop: design?.nsSubtitleFontSizeDesktop || "0.95rem",
+            nsVariantFontSizeDesktop: design?.nsVariantFontSizeDesktop || "14px",
+            nsVariantPaddingDesktop: design?.nsVariantPaddingDesktop || "8px 12px",
+            nsVariantBorderRadiusDesktop: design?.nsVariantBorderRadiusDesktop || "4px",
+            nsTitleFontSizeMobile: design?.nsTitleFontSizeMobile || "1rem",
+            nsSubtitleFontSizeMobile: design?.nsSubtitleFontSizeMobile || "0.9rem",
+            nsVariantFontSizeMobile: design?.nsVariantFontSizeMobile || "13px",
+            nsVariantPaddingMobile: design?.nsVariantPaddingMobile || "6px 10px",
+            nsVariantBorderRadiusMobile: design?.nsVariantBorderRadiusMobile || "4px",
             displayStyle: design?.displayStyle || "INLINE",
         };
 
@@ -112,6 +136,16 @@ export default function DesignSettings() {
             noteContentFontSizeMobile,
             fieldTitleFontSizeMobile,
             fieldPlaceholderFontSizeMobile,
+            nsTitleFontSizeDesktop,
+            nsSubtitleFontSizeDesktop,
+            nsVariantFontSizeDesktop,
+            nsVariantPaddingDesktop,
+            nsVariantBorderRadiusDesktop,
+            nsTitleFontSizeMobile,
+            nsSubtitleFontSizeMobile,
+            nsVariantFontSizeMobile,
+            nsVariantPaddingMobile,
+            nsVariantBorderRadiusMobile,
             displayStyle,
         };
 
@@ -123,7 +157,9 @@ export default function DesignSettings() {
         noteTitleFontSizeDesktop, noteContentFontSizeDesktop,
         fieldTitleFontSizeDesktop, fieldPlaceholderFontSizeDesktop,
         noteTitleFontSizeMobile, noteContentFontSizeMobile,
-        fieldTitleFontSizeMobile, fieldPlaceholderFontSizeMobile
+        fieldTitleFontSizeMobile, fieldPlaceholderFontSizeMobile,
+        nsTitleFontSizeDesktop, nsSubtitleFontSizeDesktop, nsVariantFontSizeDesktop, nsVariantPaddingDesktop, nsVariantBorderRadiusDesktop,
+        nsTitleFontSizeMobile, nsSubtitleFontSizeMobile, nsVariantFontSizeMobile, nsVariantPaddingMobile, nsVariantBorderRadiusMobile
     ]);
 
     const handleSave = () => {
@@ -146,6 +182,16 @@ export default function DesignSettings() {
         formData.append("noteContentFontSizeMobile", noteContentFontSizeMobile);
         formData.append("fieldTitleFontSizeMobile", fieldTitleFontSizeMobile);
         formData.append("fieldPlaceholderFontSizeMobile", fieldPlaceholderFontSizeMobile);
+        formData.append("nsTitleFontSizeDesktop", nsTitleFontSizeDesktop);
+        formData.append("nsSubtitleFontSizeDesktop", nsSubtitleFontSizeDesktop);
+        formData.append("nsVariantFontSizeDesktop", nsVariantFontSizeDesktop);
+        formData.append("nsVariantPaddingDesktop", nsVariantPaddingDesktop);
+        formData.append("nsVariantBorderRadiusDesktop", nsVariantBorderRadiusDesktop);
+        formData.append("nsTitleFontSizeMobile", nsTitleFontSizeMobile);
+        formData.append("nsSubtitleFontSizeMobile", nsSubtitleFontSizeMobile);
+        formData.append("nsVariantFontSizeMobile", nsVariantFontSizeMobile);
+        formData.append("nsVariantPaddingMobile", nsVariantPaddingMobile);
+        formData.append("nsVariantBorderRadiusMobile", nsVariantBorderRadiusMobile);
         formData.append("displayStyle", displayStyle);
         submit(formData, { method: "post" });
     };
@@ -177,6 +223,16 @@ export default function DesignSettings() {
         setNoteContentFontSizeMobile(design?.noteContentFontSizeMobile || "13px");
         setFieldTitleFontSizeMobile(design?.fieldTitleFontSizeMobile || "13px");
         setFieldPlaceholderFontSizeMobile(design?.fieldPlaceholderFontSizeMobile || "12px");
+        setNsTitleFontSizeDesktop(design?.nsTitleFontSizeDesktop || "1.1rem");
+        setNsSubtitleFontSizeDesktop(design?.nsSubtitleFontSizeDesktop || "0.95rem");
+        setNsVariantFontSizeDesktop(design?.nsVariantFontSizeDesktop || "14px");
+        setNsVariantPaddingDesktop(design?.nsVariantPaddingDesktop || "8px 12px");
+        setNsVariantBorderRadiusDesktop(design?.nsVariantBorderRadiusDesktop || "4px");
+        setNsTitleFontSizeMobile(design?.nsTitleFontSizeMobile || "1rem");
+        setNsSubtitleFontSizeMobile(design?.nsSubtitleFontSizeMobile || "0.9rem");
+        setNsVariantFontSizeMobile(design?.nsVariantFontSizeMobile || "13px");
+        setNsVariantPaddingMobile(design?.nsVariantPaddingMobile || "6px 10px");
+        setNsVariantBorderRadiusMobile(design?.nsVariantBorderRadiusMobile || "4px");
     };
 
     return (
@@ -252,6 +308,39 @@ export default function DesignSettings() {
                                             <TextField label="Note Content Font Size (Mobile)" value={noteContentFontSizeMobile} onChange={setNoteContentFontSizeMobile} autoComplete="off" placeholder="13px" />
                                         </FormLayout.Group>
                                     </FormLayout>
+                                </BlockStack>
+                            </Card>
+                        </Box>
+
+                        <Box paddingBlockStart="400">
+                            <Card>
+                                <BlockStack gap="400">
+                                    <Text as="h2" variant="headingMd">Nearest Size Styling (Desktop)</Text>
+                                    <FormLayout>
+                                        <FormLayout.Group>
+                                            <TextField label="Title Font Size" value={nsTitleFontSizeDesktop} onChange={setNsTitleFontSizeDesktop} autoComplete="off" placeholder="1.1rem" />
+                                            <TextField label="Subtitle Font Size" value={nsSubtitleFontSizeDesktop} onChange={setNsSubtitleFontSizeDesktop} autoComplete="off" placeholder="0.95rem" />
+                                        </FormLayout.Group>
+                                        <FormLayout.Group>
+                                            <TextField label="Variant Font Size" value={nsVariantFontSizeDesktop} onChange={setNsVariantFontSizeDesktop} autoComplete="off" placeholder="14px" />
+                                            <TextField label="Variant Padding" value={nsVariantPaddingDesktop} onChange={setNsVariantPaddingDesktop} autoComplete="off" placeholder="8px 12px" />
+                                            <TextField label="Variant Border Radius" value={nsVariantBorderRadiusDesktop} onChange={setNsVariantBorderRadiusDesktop} autoComplete="off" placeholder="4px" />
+                                        </FormLayout.Group>
+                                    </FormLayout>
+                                    <Box paddingBlockStart="200">
+                                        <Text as="h2" variant="headingMd">Nearest Size Styling (Mobile)</Text>
+                                        <FormLayout>
+                                            <FormLayout.Group>
+                                                <TextField label="Title Font Size (Mobile)" value={nsTitleFontSizeMobile} onChange={setNsTitleFontSizeMobile} autoComplete="off" placeholder="1rem" />
+                                                <TextField label="Subtitle Font Size (Mobile)" value={nsSubtitleFontSizeMobile} onChange={setNsSubtitleFontSizeMobile} autoComplete="off" placeholder="0.9rem" />
+                                            </FormLayout.Group>
+                                            <FormLayout.Group>
+                                                <TextField label="Variant Font Size (Mobile)" value={nsVariantFontSizeMobile} onChange={setNsVariantFontSizeMobile} autoComplete="off" placeholder="13px" />
+                                                <TextField label="Variant Padding (Mobile)" value={nsVariantPaddingMobile} onChange={setNsVariantPaddingMobile} autoComplete="off" placeholder="6px 10px" />
+                                                <TextField label="Variant Border Radius (Mobile)" value={nsVariantBorderRadiusMobile} onChange={setNsVariantBorderRadiusMobile} autoComplete="off" placeholder="4px" />
+                                            </FormLayout.Group>
+                                        </FormLayout>
+                                    </Box>
                                 </BlockStack>
                             </Card>
                         </Box>

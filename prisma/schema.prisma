@@ -97,6 +97,18 @@ model CustomSizeDesign {
   noteContentFontSizeMobile     String?  @default("13px")
   fieldTitleFontSizeMobile      String?  @default("13px")
   fieldPlaceholderFontSizeMobile String?  @default("12px")
+  // Nearest Size Styling - Desktop
+  nsTitleFontSizeDesktop        String?  @default("1.1rem")
+  nsSubtitleFontSizeDesktop     String?  @default("0.95rem")
+  nsVariantFontSizeDesktop      String?  @default("14px")
+  nsVariantPaddingDesktop       String?  @default("8px 12px")
+  nsVariantBorderRadiusDesktop  String?  @default("4px")
+  // Nearest Size Styling - Mobile
+  nsTitleFontSizeMobile         String?  @default("1rem")
+  nsSubtitleFontSizeMobile      String?  @default("0.9rem")
+  nsVariantFontSizeMobile       String?  @default("13px")
+  nsVariantPaddingMobile        String?  @default("6px 10px")
+  nsVariantBorderRadiusMobile   String?  @default("4px")
   // Custom CSS
   customCss        String?
   displayStyle     String   @default("INLINE") // "MODAL" or "INLINE"
