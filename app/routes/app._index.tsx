@@ -22,7 +22,8 @@ export const loader = async ({ request }: any) => {
   const { session } = await authenticate.admin(request);
   const sets = await prisma.customSizeSet.findMany({
     where: { shop: session.shop },
-    include: { _count: { select: { fields: true } } }
+    include: { _count: { select: { fields: true } } },
+    orderBy: { order: 'asc' }
   });
   console.log("Dashboard Sets:", JSON.stringify(sets, null, 2));
   return json({ sets });
@@ -44,6 +45,35 @@ export const action = async ({ request }: any) => {
     return json({ success: true });
   }
 
+  if (action === "reorder" && setId) {
+    const direction = formData.get("direction");
+    const currentOrder = parseInt(formData.get("order") as string);
+    const shop = session.shop;
+
+    const allSets = await prisma.customSizeSet.findMany({
+      where: { shop },
+      orderBy: { order: 'asc' }
+    });
+
+    const currentIndex = allSets.findIndex(s => s.id === parseInt(setId as string));
+    if (currentIndex === -1) return json({ success: false });
+
+    if (direction === "up" && currentIndex > 0) {
+      const prevSet = allSets[currentIndex - 1];
+      await prisma.$transaction([
+        prisma.customSizeSet.update({ where: { id: parseInt(setId as string) }, data: { order: prevSet.order } }),
+        prisma.customSizeSet.update({ where: { id: prevSet.id }, data: { order: currentOrder } })
+      ]);
+    } else if (direction === "down" && currentIndex < allSets.length - 1) {
+      const nextSet = allSets[currentIndex + 1];
+      await prisma.$transaction([
+        prisma.customSizeSet.update({ where: { id: parseInt(setId as string) }, data: { order: nextSet.order } }),
+        prisma.customSizeSet.update({ where: { id: nextSet.id }, data: { order: currentOrder } })
+      ]);
+    }
+    return json({ success: true });
+  }
+
   return json({ success: false });
 };
 
@@ -59,6 +89,15 @@ export default function Index() {
       formData.append("setId", String(setId));
       submit(formData, { method: "post" });
     }
+  };
+
+  const handleReorder = (setId: number, order: number, direction: "up" | "down") => {
+    const formData = new FormData();
+    formData.append("_action", "reorder");
+    formData.append("setId", String(setId));
+    formData.append("order", String(order));
+    formData.append("direction", direction);
+    submit(formData, { method: "post" });
   };
 
   return (
@@ -110,12 +149,42 @@ export default function Index() {
                       )
                     }
                   >
-                    <Text variant="bodyMd" fontWeight="bold" as="h3">
-                      {item.name}
-                    </Text>
-                    <div>Trigger: {item.triggerVariant}</div>
-                    <div style={{ fontSize: '0.8em', color: '#666' }}>URL: {item.imageUrl || "None"}</div>
-                    <div>{item._count.fields} fields</div>
+                    <InlineStack align="space-between">
+                      <BlockStack gap="100">
+                        <Text variant="bodyMd" fontWeight="bold" as="h3">
+                          {item.name || "Untitled Set"}
+                        </Text>
+                        <div>Trigger: {item.triggerVariant}</div>
+                        <div style={{ fontSize: '0.8em', color: '#666' }}>ID: {item.id}</div>
+                        <div>{item._count.fields} fields</div>
+                      </BlockStack>
+                      <InlineStack gap="200">
+                        <Button
+                          icon={() => (
+                            <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+                              <path d="M15 13l-5-5-5 5h10z" />
+                            </svg>
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReorder(item.id, (item as any).order || 0, "up");
+                          }}
+                          disabled={(sets as any).indexOf(item) === 0}
+                        />
+                        <Button
+                          icon={() => (
+                            <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+                              <path d="M5 7l5 5 5-5H5z" />
+                            </svg>
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReorder(item.id, (item as any).order || 0, "down");
+                          }}
+                          disabled={(sets as any).indexOf(item) === sets.length - 1}
+                        />
+                      </InlineStack>
+                    </InlineStack>
                   </ResourceItem>
                 )}
               />

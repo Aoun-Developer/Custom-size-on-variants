@@ -335,13 +335,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bH = s => `<div class="custom-size-set-block"><h3 style="margin-bottom:15px;font-size:1.1em;">${s.name}</h3>${bSC(s)}</div>`;
 
-        const bNH = s => (s.noteTitle || s.noteContent) ? `<div class="custom-size-note">${s.noteTitle ? `<h3>${s.noteTitle}</h3>` : ''}${s.noteContent ? `<p>${s.noteContent.replace(/\n/g, '<br>')}</p>` : ''}</div>` : '';
+        const bNH = s => {
+            if (!s.noteTitle && !s.noteContent) return '';
+            let contentHtml = '';
+            if (s.noteContent) {
+                const lines = s.noteContent.split('\n').filter(l => l.trim());
+                contentHtml = `<ul style="margin:0;padding-left:20px;list-style-type:disc;">${lines.map(l => `<li>${l}</li>`).join('')}</ul>`;
+            }
+            return `<div class="custom-size-note">${s.noteTitle ? `<h3>${s.noteTitle}</h3>` : ''}${contentHtml}</div>`;
+        };
 
         const bNS = s => {
             if (!s.reqNearestSize) return '';
             const f = getF(),
-                o = [...f ? f.querySelectorAll('select[name*="Size"] option,input[name*="Size"]') : []].map(e => e.value || e.innerText).filter(v => v && !v.toLowerCase().includes('custom'));
-            return o.length ? `<div class="custom-size-field"><label>Please select one option from nearest size*</label><select class="custom-size-nearest-size custom-size-input" name="properties[Nearest Size]" required><option value="">Choose your nearest size</option>${o.map(t => `<option value="${t}">${t}</option>`).join('')}</select></div>` : ''
+                o = [...f ? f.querySelectorAll('select[name*="Size"] option,input[name*="Size"]') : []]
+                    .map(e => e.value || e.innerText)
+                    .filter(v => v && !v.toLowerCase().includes('custom'));
+
+            if (!o.length) return '';
+
+            return `<div class="custom-size-field-swatches">
+                <label>Please select one option from nearest size*</label>
+                <input type="hidden" class="custom-size-nearest-size-input custom-size-input" name="properties[Nearest Size]" required />
+                <div class="custom-size-swatches">
+                    ${o.map(t => `<button type="button" class="custom-size-swatch" data-value="${t}">${t}</button>`).join('')}
+                </div>
+            </div>`;
         };
 
         const debouncedCV = () => {
@@ -356,6 +375,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // Catch clicks on labels/buttons that theme uses for swatches
         document.addEventListener('click', e => {
             if (e.target.closest('.product-form__input label, .variant-picker label, label[for^="Option"], .swatch-element')) debouncedCV();
+
+            // Handle our own nearest size swatches
+            const swatch = e.target.closest('.custom-size-swatch');
+            if (swatch) {
+                const container = swatch.closest('.custom-size-field-swatches');
+                const input = container.querySelector('.custom-size-nearest-size-input');
+                const swatches = container.querySelectorAll('.custom-size-swatch');
+
+                swatches.forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                input.value = swatch.dataset.value;
+
+                // Trigger validation check
+                const modal = swatch.closest('.custom-size-modal-overlay') || swatch.closest('.custom-size-inline');
+                if (modal) vI(modal);
+            }
         });
         setInterval(cV, 2000);
     };

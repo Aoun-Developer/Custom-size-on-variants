@@ -265,6 +265,14 @@ export default function SetEditor() {
         setNewFieldLabel("");
     };
 
+    const handleMoveField = (index: number, direction: "up" | "down") => {
+        const newFields = [...fields];
+        const targetIndex = direction === "up" ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newFields.length) return;
+        [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
+        setFields(newFields);
+    };
+
     const handleSave = () => {
         const formData = new FormData();
         formData.append("name", name);
@@ -533,6 +541,28 @@ export default function SetEditor() {
                                                             autoComplete="off"
                                                         />
                                                     </div>
+                                                    <InlineStack gap="100">
+                                                        <Button
+                                                            size="slim"
+                                                            icon={() => (
+                                                                <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                                                                    <path d="M15 13l-5-5-5 5h10z" />
+                                                                </svg>
+                                                            )}
+                                                            onClick={() => handleMoveField(index, "up")}
+                                                            disabled={index === 0}
+                                                        />
+                                                        <Button
+                                                            size="slim"
+                                                            icon={() => (
+                                                                <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                                                                    <path d="M5 7l5 5 5-5H5z" />
+                                                                </svg>
+                                                            )}
+                                                            onClick={() => handleMoveField(index, "down")}
+                                                            disabled={index === fields.length - 1}
+                                                        />
+                                                    </InlineStack>
                                                     <Button tone="critical" onClick={() => setFields(fields.filter((_, i) => i !== index))}>Delete</Button>
                                                 </div>
                                             </InlineStack>
