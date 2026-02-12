@@ -114,9 +114,18 @@
   margin-bottom: 15px;
 }
 
-.custom-size-field-swatches label {
-  font-weight: 500;
+.custom-size-field-swatches label,
+.custom-size-nearest-size-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.custom-size-nearest-size-subtitle {
   font-size: 0.95rem;
+  margin-bottom: 10px;
+  color: #333;
 }
 
 .custom-size-swatches {

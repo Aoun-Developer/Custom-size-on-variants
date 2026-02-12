@@ -165,8 +165,7 @@ export default function Index() {
                               <path d="M15 13l-5-5-5 5h10z" />
                             </svg>
                           )}
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             handleReorder(item.id, (item as any).order || 0, "up");
                           }}
                           disabled={(sets as any).indexOf(item) === 0}
@@ -177,8 +176,7 @@ export default function Index() {
                               <path d="M5 7l5 5 5-5H5z" />
                             </svg>
                           )}
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             handleReorder(item.id, (item as any).order || 0, "down");
                           }}
                           disabled={(sets as any).indexOf(item) === sets.length - 1}

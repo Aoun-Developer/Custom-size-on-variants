@@ -347,18 +347,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bNS = s => {
             if (!s.reqNearestSize) return '';
-            const f = getF(),
-                o = [...f ? f.querySelectorAll('select[name*="Size"] option,input[name*="Size"]') : []]
-                    .map(e => e.value || e.innerText)
-                    .filter(v => v && !v.toLowerCase().includes('custom'));
+            const f = getF();
 
-            if (!o.length) return '';
+            // More robust option detection
+            const selectors = [
+                'select[name*="Size"] option',
+                'input[name*="Size"]',
+                'select[name*="Item"] option',
+                'input[name*="Item"]',
+                'select[name*="Option"] option', // Shopify default names
+                'input[name*="Option"]',
+                'select[name*="option"] option',
+                'input[name*="option"]',
+                '.product-form__input select option',
+                '.product-form__input input[type="radio"]',
+                '[data-variant-opener]', // Some themes
+                '.swatch-input',
+                '.swatch-element input',
+                '.variant-picker input',
+                '.variant-input input'
+            ];
+
+            const searchRoot = f || document;
+            let i = [...searchRoot.querySelectorAll(selectors.join(','))];
+
+            // If still empty and we have a form, try document anyway
+            if (i.length === 0 && f) {
+                i = [...document.querySelectorAll(selectors.join(','))];
+            }
+
+            let o = i.map(e => {
+                let v = e.value || e.dataset.value || (e.tagName === 'OPTION' ? e.text : '');
+                if (!v && e.tagName === 'INPUT' && e.id) {
+                    const label = document.querySelector(`label[for="${e.id}"]`);
+                    if (label) v = label.innerText;
+                }
+                return v?.trim();
+            }).filter(v => {
+                if (!v) return false;
+                const low = v.toLowerCase();
+                return !low.includes('custom') && !low.includes('choose') && !low.includes('select') && !low.includes('default');
+            });
+
+            o = [...new Set(o)]; // Deduplicate
+
+            console.log('[Custom Size] reqNearestSize found options:', o);
+
+            if (!o.length) {
+                console.log('[Custom Size] reqNearestSize is true but no options found matching selectors');
+            }
 
             return `<div class="custom-size-field-swatches">
-                <label>Please select one option from nearest size*</label>
+                <label class="custom-size-nearest-size-title">Please select one option from nearest size*</label>
+                <div class="custom-size-nearest-size-subtitle"><span style="color:red;">*</span>Choose your nearest size:</div>
                 <input type="hidden" class="custom-size-nearest-size-input custom-size-input" name="properties[Nearest Size]" required />
                 <div class="custom-size-swatches">
-                    ${o.map(t => `<button type="button" class="custom-size-swatch" data-value="${t}">${t}</button>`).join('')}
+                    ${o.length ? o.map(t => `<button type="button" class="custom-size-swatch" data-value="${t}">${t}</button>`).join('') : '<p style="font-size:0.8em;color:#999;margin-bottom:10px;">(No sizes detected - please check variant settings)</p>'}
                 </div>
             </div>`;
         };
